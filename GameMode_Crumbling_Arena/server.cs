@@ -1,3 +1,4 @@
+$CA::Score[%client.bl_id]++;//todo: line 703
 //for(%i = 1; %i <= 1000; %i++) if(getRandom(1,8000) == 1) echo(boomm);
 
 if(getSubStr(getDateTime(),0,2) == 12)
@@ -156,10 +157,10 @@ function getBrick(%brick)
 			return "brick2x4Data";
 
 		case 5:
-			return "brick8x8Data";
+			return "brick4xCubeData"; // Extra chance for 4x cubes
 
 		case 6:
-			return "brick8x8FData";
+			return "brick2x4x3Data"; // Extra chance for 2x4x3
 
 		case 7:
 			return "brick2x4x3Data";
@@ -184,6 +185,9 @@ function buildArena()
 	echo("SERVER: Building arena...");
 
 	%arenaSize = 15 + ClientGroup.getCount();
+	if(%arenaSize > 24)
+		%arenaSize = 24;
+	
 	%arenaHeight = getRandom(2,9);
 	$CA::Layers = %arenaHeight;
 
@@ -324,6 +328,7 @@ function doRoundModifier(%which)
 {
 	//talk("doRoundModifier" SPC %which);
 	centerPrintAll("<font:impact:50>\c3BEGIN!",5);
+	$CA::RoundModifierID = %which;
 	
 	if($CA::Trees)
 		%which = 5; // Use horses if the tree event is happening
@@ -501,11 +506,94 @@ function serverCmdStats(%client) // WIP
 	messageClient(%client,'CAStats',"\c0You have won \c6" @ %wins @ "\c0 times. You have died \c6" @ %loss @ "\c0 times. You have destroyed a total of \c6" @ %bricks @ "\c0 bricks!");
 }
 
+function awardRoundEndAchievements(%client)
+{
+	%blid = %client.bl_id;
+	if($CA::Score[%blid] >= 1 && $CA::ClientCount > 1 && !$CA::AchievementWinner[%blid])
+	{
+		messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Winner!\c5 achievement!");
+		$CA::AchievementWinner[%blid] = 1;
+	}
+	
+	switch($CA::RoundModifierID)
+	{
+		case 1: //Pushbrooms
+			if($CA::ClientCount > 3 && !$CA::AchievementBrooms[%blid])
+			{
+				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Sweeping the Floor\c5 achievement!");
+				$CA::AchievementBrooms[%blid] = 1;
+				return;
+			}
+		case 2: //Huge
+			if($CA::ClientCount > 3 && !$CA::AchievementGiant[%blid])
+			{
+				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Giant\c5 achievement!");
+				$CA::AchievementGiant[%blid] = 1;
+				return;
+			}
+		case 3: //Auto crumble
+			if($CA::ClientCount > 3 && !$CA::AchievementUnstable[%blid])
+			{
+				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Askew\c5 achievement!");
+				$CA::AchievementUnstable[%blid] = 1;
+				return;
+			}
+		case 4: //Small playerscale
+			if($CA::ClientCount > 3 && !$CA::AchievementTiny[%blid])
+			{
+				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Ant\c5 achievement!");
+				$CA::AchievementTiny[%blid] = 1;
+				return;
+			}
+		case 5: //Horses
+			if($CA::ClientCount > 3 && !$CA::AchievementHorse[%blid])
+			{
+				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Horse\c5 achievement!");
+				$CA::AchievementHorse[%blid] = 1;
+				return;
+			}
+		case 6: //Swords
+			if($CA::ClientCount > 3 && !$CA::AchievementSwords[%blid])
+			{
+				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Sword Fighter\c5 achievement!");
+				$CA::AchievementSwords[%blid] = 1;
+				return;
+			}
+		case 7: //Slow
+			if($CA::ClientCount > 3 && !$CA::AchievementSlow[%blid])
+			{
+				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Snail\c5 achievement!");
+				$CA::AchievementSlow[%blid] = 1;
+				return;
+			}
+		case 8: //Fast
+			if($CA::ClientCount > 3 && !$CA::AchievementFast[%blid])
+			{
+				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Hedgehog\c5 achievement!");
+				$CA::AchievementFast[%blid] = 1;
+				return;
+			}
+		case 9: //Low gravity
+			if($CA::ClientCount > 3 && !$CA::AchievementSpace[%blid])
+			{
+				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Astronaut\c5 achievement!");
+				$CA::AchievementSpace[%blid] = 1;
+				return;
+			}
+	}
+	
+	if($CA::ClientCount > 3 && !$CA::AchievementNormal[%blid])
+	{
+		messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Vanilla\c5 achievement!");
+		$CA::AchievementNormal[%blid] = 1;
+	}
+}
+
 deactivatePackage("CrumblingArenaPackage");
 package CrumblingArenaPackage
 {
 	function fxDTSBrick::destroyBrick(%this,%force)
-	{
+	{	
 		if(%force)
 		{
 			%this.isBombBrick = 0;
@@ -579,6 +667,7 @@ package CrumblingArenaPackage
 		//CAGravityZone.deactivate();
 
 		export("$CA::Score*","config/server/CrumbleArena/scores.cs");
+		export("$CA::Achievement*","config/server/CrumbleArena/achievements.cs");
 
 		parent::reset(%a,%b,%c,%d,%e,%f,%g);
 	}
@@ -602,6 +691,8 @@ package CrumblingArenaPackage
 			$CA::GameEnded = 1;
 			$CA::Score[%client.bl_id]++;
 			$CA::Crumble = 0;
+			
+			awardRoundEndAchievements(%client);
 			
 			$CA::ScoreBricks[%client.bl_id] = $CA::ScoreBricks[%client.bl_id]+%client.player.bricksDestroyed;
 			%client.player.bricksDestroyed = 0;
@@ -644,10 +735,7 @@ package CrumblingArenaPackage
 	}
 
 	function CALoop()
-	{
-		if(isEventPending($CALoop))
-			talk("fuck (CALoop)");
-		
+	{	
 		cancel($CALoop);
 		
 		%crumbleStart = $CA::GameDelay+20000+$CA::ClientCount*18000;
@@ -680,9 +768,6 @@ package CrumblingArenaPackage
 
 	function checkVelocity()
 	{
-		if(isEventPending($CA::Loop::Velocity))
-			talk("fuck (checkVelocity)");
-		
 		cancel($CA::Loop::Velocity);
 		
 		if(!$CA::GameEnded) // Freeze the timer when the game is over
@@ -703,7 +788,7 @@ package CrumblingArenaPackage
 		$CA::RoundStartMessage = 1;
 		
 		// This is to kill players that try to screw things up with the DLL. (Temporary until I can make it brick-based)
-		if(getSimTime()-$CA::LastLagCheck > 1000)
+		if(getSimTime()-$CA::LastLagCheck > 2000) //todo: make this only apply after round start
 		{
 			$CA::LastLagCheck = getSimTime(); // Reset the timer
 			%lagCheck = 1;
@@ -714,8 +799,8 @@ package CrumblingArenaPackage
 			%obj = clientGroup.getObject(%i);
 			if(isObject(%obj.player) && getWord(%obj.player.getVelocity(),2) < -40)
 			{
-				if($CA::Time <= 6)
-					$CA::ClientCount--; // If a player dies within the first five seconds, exclude them from the "unstable" timer.
+				if($CA::Time <= 7)
+					$CA::ClientCount--; // If a player dies within the first seven seconds, exclude them from the "unstable" timer.
 				else
 				{
 					$CA::ScoreBricks[%obj.bl_id] = $CA::ScoreBricks[%obj.bl_id]+%obj.player.bricksDestroyed;
@@ -730,8 +815,8 @@ package CrumblingArenaPackage
 					talk("Client appears to be frozen: " @ %obj.name @ "; transform=" @ %obj.player.getTransform() @ "; last=" @ %obj.player.lastTransform);
 					%obj.player.kill();
 				}
-				
-				%obj.player.lastTransform = %obj.player.getTransform();
+				else
+					%obj.player.lastTransform = %obj.player.getTransform();
 			}
 			
 			if(%obj.HUD)
