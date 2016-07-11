@@ -190,21 +190,21 @@ function buildArena()
 	
 	%arenaHeight = getRandom(2,9);
 	$CA::Layers = %arenaHeight;
-
-	%brickDatablock = getBrick(getRandom(0,9));
-	%brickSize = getBrickSize(%brickDatablock);
+	
+	$CA::BrickDatablock = getBrick(getRandom(0,9));
+	%brickSize = getBrickSize($CA::BrickDatablock);
 
 	//may help with the glitched bricks
 	%arenaOffsetX = getRandom(-700,700);
 	%arenaOffsetY = getRandom(-700,700);
 
-	echo("SIZE=" @ %arenaSize SPC "HEIGHT=" @ %arenaHeight SPC "BRICK=" @ %brickDatablock);
+	echo("SIZE=" @ %arenaSize SPC "HEIGHT=" @ %arenaHeight SPC "BRICK=" @ $CA::BrickDatablock);
 	
 	//talk(%arenaSize*getWord(%brickSize,1)*2);
 	
 	$CA::ArenaSizeDisplay = %arenaSize @ "x" @ %arenaSize @ "x" @ %arenaHeight @ %f;
-	$CA::ArenaBrick = %brickDatablock.uiName;
-	$CA::ArenaIcon = %brickDatablock.iconName;
+	$CA::ArenaBrick = $CA::BrickDatablock.uiName;
+	$CA::ArenaIcon = $CA::BrickDatablock.iconName;
 
 	for(%z=0;%z<%arenaHeight;%z++)
 	{
@@ -223,7 +223,7 @@ function buildArena()
 					client = 0;
 					colorFxID = 0;
 					colorID = %z;
-					dataBlock = %brickDatablock;
+					dataBlock = $CA::BrickDatablock;
 					isBasePlate = 0;
 					isPlanted = 1;
 					position = %positionX SPC %positionY SPC %positionZ;
@@ -584,7 +584,7 @@ function awardRoundEndAchievements(%client)
 	
 	if($CA::ClientCount > 3 && !$CA::AchievementNormal[%blid])
 	{
-		messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Vanilla\c5 achievement!");
+		//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Vanilla\c5 achievement!");
 		$CA::AchievementNormal[%blid] = 1;
 	}
 }
@@ -607,7 +607,7 @@ package CrumblingArenaPackage
 				//%this.crumbled = 1;
 				%this.bombTriggered = 1;
 				%this.setEmitter("BurnEmitterA");
-				%this.schedule(3500,spawnExplosion,rocketLauncherProjectile,3);
+				%this.schedule(3500,spawnExplosion,rocketLauncherProjectile,$CA::BrickDatablock.brickSizeY/1.25);
 				%this.schedule(3501,destroyBrick,1); // In case the brick mysteriously doesn't explode
 				return;
 			}
@@ -753,7 +753,7 @@ package CrumblingArenaPackage
 				for(%i=0;%i<$CA::Layers;%i++)
 				{
 					%brick = BrickGroup_888888.getObject(getRandom(0,BrickGroup_888888.getCount()-1)); // Fixed by adding "-1"
-					if(isObject(%brick) && %brick.getName() !$= "MusicBrick")
+					if(isObject(%brick) && %brick.getName() !$= "MusicBrick" && !%brick.bombTriggered)
 					{
 						%brick.setColorFX(3);
 						%brick.schedule(1500,destroyBrick);
