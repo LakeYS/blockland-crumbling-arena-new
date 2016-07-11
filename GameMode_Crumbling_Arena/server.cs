@@ -66,6 +66,10 @@ if(!$CA::HasLoaded)
 	if(isFile(%filename))
 		exec(%filename);
 	
+	%filenameB = "config/server/CrumbleArena/achievements.cs";
+	if(isFile(%filenameB))
+		exec(%filenameB);
+	
 	new PhysicalZone(CAGravityZone)
 	{
 		position = "-50000 50000 -100";
