@@ -3,7 +3,7 @@ ADDON Emote_Alarm
 ADDON Emote_Confusion
 ADDON Emote_Hate
 ADDON Emote_Love
-ADDON Light_Basic
+ADDON Light_Animated
 ADDON Particle_Basic
 ADDON Particle_Player
 ADDON Particle_Tools

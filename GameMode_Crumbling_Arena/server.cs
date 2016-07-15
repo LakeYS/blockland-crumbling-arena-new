@@ -25,6 +25,13 @@ datablock AudioDescription(Audio15xMusicLooping3d : AudioMusicLooping3d)
 	referenceDistance = 50;
 };
 
+datablock AudioProfile(brickStep0)
+{
+	filename = "./brickStep0.wav";
+	description = AudioClosest3d;
+	preload = false;
+};
+
 datablock fxDTSBrickData(brick15xMusicData : brickMusicData)
 {
 	uiName = "Music (15x Range)";
@@ -60,7 +67,7 @@ datablock PlayerData(PlayerFrozenArmor : PlayerStandardArmor)
 if(!$CA::HasLoaded)
 {
 	$CA::HasLoaded = 1;
-	$CA::Music = 1;
+	$CA::Music = 0;
 
 	%filename = "config/server/CrumbleArena/scores.cs";
 	if(isFile(%filename))
@@ -132,16 +139,16 @@ function createMusicDB()
 
 function getBrick(%brick)
 {
-	if(getRandom(1,150) == 1) // Rare tree brick
-	{
-		$CA::Trees = 1;
-		if($CA::XmasStuff)
-			return "brickChristmasTreeData";
-		else
-			return "brickPineTreeData";
-	}
-	else
-		$CA::Trees = 0;
+	//if(getRandom(1,150) == 1) // Rare tree brick
+	//{
+	//	$CA::Trees = 1;
+	//	if($CA::XmasStuff)
+	//		return "brickChristmasTreeData";
+	//	else
+	//		return "brickPineTreeData";
+	//}
+	//else
+	//	$CA::Trees = 0;
 
 	switch(%brick)
 	{
@@ -240,7 +247,7 @@ function buildArena()
 				
 				};
 				
-				if(getRandom(1,1500) == 1) 
+				if(getRandom(1,2800) == 1) //
 				{
 					%brick.setEmitter("AdminWandEmitterB");
 					%brick.setColorFX(5);
@@ -263,7 +270,7 @@ function buildArena()
 		%lastBrick = %brick;
 
 	%middle = (getWord(%firstBrick.getPosition(),0) + getWord(%lastBrick.getPosition(),0))/2 SPC (getWord(%firstBrick.getPosition(),1) + getWord(%lastBrick.getPosition(),1))/2 SPC %positionZ + 50;
-
+	
 	if($CA::Music)
 	{
 		%musicBrick = new fxDTSBrick(MusicBrick)
@@ -308,8 +315,7 @@ function makeNewSpawn(%x,%y,%z,%b1,%b2)
 
 		if(%obj.player)
 		{
-
-			%obj.player.delete();
+			//%obj.player.delete();
 			%obj.spawnPlayer();
 
 			%obj.player.tool[0] = "";
@@ -513,10 +519,16 @@ function serverCmdStats(%client) // WIP
 function awardRoundEndAchievements(%client)
 {
 	%blid = %client.bl_id;
-	if($CA::Score[%blid] >= 1 && $CA::ClientCount > 1 && !$CA::AchievementWinner[%blid])
+	if($CA::Score[%blid] >= 1 && $CA::ClientCount > 2 && !$CA::AchievementWinner[%blid])
 	{
 		messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Winner!\c5 achievement!");
 		$CA::AchievementWinner[%blid] = 1;
+	}
+	
+	if(!%player.achievementNoCautious && $CA::ClientCount > 3 && !$CA::AchievementCautious[%blid])
+	{
+		messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Cautious\c5 achievement!");
+		$CA::AchievementCautious[%blid] = 1;
 	}
 	
 	switch($CA::RoundModifierID)
@@ -596,7 +608,7 @@ function awardRoundEndAchievements(%client)
 deactivatePackage("CrumblingArenaPackage");
 package CrumblingArenaPackage
 {
-	function fxDTSBrick::destroyBrick(%this,%force)
+	function fxDTSBrick::destroyBrick(%this,%force,%sound)
 	{	
 		if(%force)
 		{
@@ -611,7 +623,8 @@ package CrumblingArenaPackage
 				//%this.crumbled = 1;
 				%this.bombTriggered = 1;
 				%this.setEmitter("BurnEmitterA");
-				%this.schedule(3500,spawnExplosion,rocketLauncherProjectile,$CA::BrickDatablock.brickSizeY/1.25);
+				%this.setLight("AlarmLightA");
+				%this.schedule(3500,spawnExplosion,rocketLauncherProjectile,$CA::BrickDatablock.brickSizeX/1.5);
 				%this.schedule(3501,destroyBrick,1); // In case the brick mysteriously doesn't explode
 				return;
 			}
@@ -619,7 +632,10 @@ package CrumblingArenaPackage
 			%this.crumbled = 1;
 			//%this.schedule(125,fakeKillBrick);
 			%this.setEmitter();
+			%this.setLight();
 			%this.setColor(%this.colorID+10); // Make the brick transparent
+			if(%sound !$= "")
+				%this.playSound(%sound);
 			%this.schedule(125,fakeKillBrick,"0 0 0",3);
 			%this.schedule(2500,disappear,-1);			
 			%this.schedule(3000,delete);
@@ -647,7 +663,10 @@ package CrumblingArenaPackage
 	{		
 		if(%this && !%player.client.noCrumble)
 		{
-			%this.destroyBrick();
+			if(%this.colorID+1 != $CA::Layers)
+				%player.achievementNoCautious = 1;
+			
+			%this.destroyBrick(0,"brickStep0");
 			%player.bricksDestroyed++;
 		}
 	}
@@ -723,6 +742,18 @@ package CrumblingArenaPackage
 	}
 	
 	function GameConnection::sendTrustFailureMessage() { } // To remove the "You cannot modify public bricks" message
+	
+	function projectileData::radiusDamage(%projectile,%a,%b,%c,%d,%e,%f,%g) // Achievement: Explosive brick
+	{
+		%client = %b.client;
+		if(%projectile.explosion $= "rocketExplosion" && !$CA::AchievementExplosion[%client.bl_id])
+		{
+			messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Nerf This!\c5 achievement!");
+			$CA::AchievementExplosion[%client.bl_id] = 1;
+		}
+		
+		Parent::radiusDamage(%projectile,%a,%b,%c,%d,%e,%f,%g);
+	}
 
 	function onServerDestroyed()
 	{
@@ -742,7 +773,7 @@ package CrumblingArenaPackage
 	{	
 		cancel($CALoop);
 		
-		%crumbleStart = $CA::GameDelay+20000+$CA::ClientCount*18000;
+		%crumbleStart = $CA::GameDelay+28000+$CA::ClientCount*17000;
 		if(getSimTime() - $CA::Start > %crumbleStart-2000 && !$CA::FTWarn && !$CA::GameEnded) // Original: 145000
 		{
 			$CA::FTWarn = 1;
@@ -760,7 +791,7 @@ package CrumblingArenaPackage
 					if(isObject(%brick) && %brick.getName() !$= "MusicBrick" && !%brick.bombTriggered)
 					{
 						%brick.setColorFX(3);
-						%brick.schedule(1500,destroyBrick);
+						%brick.schedule(1500,destroyBrick); // Removed "fall" sounds for now
 
 					}
 				}
@@ -783,7 +814,7 @@ package CrumblingArenaPackage
 		if($CA::TimeDisplay $= "0:0-")
 		{
 			$CA::TimeDisplay = "0:00";
-			commandToAll('centerPrint',"<font:impact:34>\c3Arena size: " @ $CA::ArenaSizeDisplay @ "<br>\c3Brick type: " @ $CA::ArenaBrick @ "<br><br><font:impact:60>\c3" @ mFloor(($CA::GameDelay - (getSimTime() - $CA::Start))/1000),mFloor($CA::GameDelay/1000));
+			commandToAll('centerPrint',"<font:impact:34>\c3Arena size: " @ $CA::ArenaSizeDisplay @ "<br>\c3Brick type: " @ $CA::ArenaBrick @ "<br><br><font:impact:60>\c3" @ mFloor(($CA::GameDelay - (getSimTime() - $CA::Start))/1000)+1,mFloor($CA::GameDelay/1000));
 		}
 		
 		if(!$CA::RoundStartMessage)
@@ -828,6 +859,22 @@ package CrumblingArenaPackage
 		}
 		
 		$CA::Loop::Velocity = schedule(10,0,checkVelocity);
+	}
+	
+	function PlayerNoJet::OnImpact(%this,%obj,%col,%vec,%force) // Borrowed this from the Blockheads Ruin X-Mas game-mode
+	{
+		echo("onImpact" SPC %this SPC %col.getDatablock());
+		parent::onImpact(%this, %obj, %col, %a, %b, %c);
+		//if(%force < 12)
+		//	return;
+		if(%col.getdatablock() != %this)
+			return;
+		//if(getWord(vectornormalize(%vec),2) <= -0.8)
+		//	return;
+		
+		%force = mFloor(%force);
+		centerprint(%col.client, "<bitmap:base/client/ui/ci/crater> \c0Stomp \c6from \c0" @ %obj.client.name @ " \c6at \c0" @ %force @ " \c6ft/sec. " @ %vec, 4);
+		centerprint(%obj.client, "<bitmap:base/client/ui/ci/crater> \c0Stomp \c6to \c0" @ %col.client.name @ " \c6at \c0" @ %force @ " \c6ft/sec. " @ %vec, 4);
 	}
 };
 activatePackage(CrumblingArenaPackage);
