@@ -1,5 +1,4 @@
-$CA::Score[%client.bl_id]++;//todo: line 703
-//for(%i = 1; %i <= 1000; %i++) if(getRandom(1,8000) == 1) echo(boomm);
+playerNoJet.minImpactSpeed = 1;
 
 if(getSubStr(getDateTime(),0,2) == 12)
 {
@@ -863,18 +862,26 @@ package CrumblingArenaPackage
 	
 	function PlayerNoJet::OnImpact(%this,%obj,%col,%vec,%force) // Borrowed this from the Blockheads Ruin X-Mas game-mode
 	{
-		echo("onImpact" SPC %this SPC %col.getDatablock());
 		parent::onImpact(%this, %obj, %col, %a, %b, %c);
-		//if(%force < 12)
-		//	return;
+		if(%force < 3)
+			return;
 		if(%col.getdatablock() != %this)
 			return;
-		//if(getWord(vectornormalize(%vec),2) <= -0.8)
-		//	return;
+		if(vectornormalize(%vec) !$= "0 0 1")
+			return;
 		
 		%force = mFloor(%force);
-		centerprint(%col.client, "<bitmap:base/client/ui/ci/crater> \c0Stomp \c6from \c0" @ %obj.client.name @ " \c6at \c0" @ %force @ " \c6ft/sec. " @ %vec, 4);
-		centerprint(%obj.client, "<bitmap:base/client/ui/ci/crater> \c0Stomp \c6to \c0" @ %col.client.name @ " \c6at \c0" @ %force @ " \c6ft/sec. " @ %vec, 4);
+		
+		if(!$CA::AchievementStomp[%obj.client.bl_id])
+		{
+			messageAll('',"\c3" @ %obj.client.name @ "\c5 has earned the \c3Mario\c5 achievement!");
+			$CA::AchievementStomp[%obj.client.bl_id] = 1;
+		}
+		
+		//TODO: Implement Mario II
+		
+		//centerprint(%col.client, "<bitmap:base/client/ui/ci/crater> \c0Stomp \c6from \c0" @ %obj.client.name @ " \c6at \c0" @ %force @ " \c6ft/sec. " @ %vec, 4);
+		//centerprint(%obj.client, "<bitmap:base/client/ui/ci/crater> \c0Stomp \c6to \c0" @ %col.client.name @ " \c6at \c0" @ %force @ " \c6ft/sec. " @ %vec, 4);
 	}
 };
 activatePackage(CrumblingArenaPackage);
