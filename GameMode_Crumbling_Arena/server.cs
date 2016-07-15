@@ -316,6 +316,7 @@ function makeNewSpawn(%x,%y,%z,%b1,%b2)
 		{
 			//%obj.player.delete();
 			%obj.spawnPlayer();
+			%obj.player.addVelocity("0 0 -1");
 
 			%obj.player.tool[0] = "";
 			messageClient(%obj,'MsgItemPickup','',0,0);
@@ -331,6 +332,9 @@ function makeNewSpawn(%x,%y,%z,%b1,%b2)
 	$CA::BrickCount = getBrickCount();
 	$CA::ClientCount = clientGroup.getCount();
 	$CA::Start = getSimTime();
+	
+	if($CA::ClientCount == 1)
+		$CA::SoloRoundStarted = 1;
 }
 
 function doRoundModifier(%which)
@@ -518,7 +522,7 @@ function serverCmdStats(%client) // WIP
 function awardRoundEndAchievements(%client)
 {
 	%blid = %client.bl_id;
-	if($CA::Score[%blid] >= 1 && $CA::ClientCount > 2 && !$CA::AchievementWinner[%blid])
+	if($CA::Score[%blid] >= 1 && $CA::ClientCount > 3 && !$CA::AchievementWinner[%blid])
 	{
 		messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Winner!\c5 achievement!");
 		$CA::AchievementWinner[%blid] = 1;
@@ -683,6 +687,7 @@ package CrumblingArenaPackage
 		$CA::Delay = 3000;
 		$CA::Crumble = 0;
 		$CA::RoundStartMessage = 0;
+		$CA::SoloRoundStarted = 0;
 
 		CAGravityZone.gravityMod = 1;
 		CAGravityZone.sendUpdate();
@@ -696,23 +701,31 @@ package CrumblingArenaPackage
 
 	function MinigameSO::checkLastManStanding(%a,%b)
 	{
-		//if($CA::ClientCount == 1 && clientGroup.getCount() > 1) // If everyone died at the start of the round, start a solo round
-		//{
-		//	echo(startsoloround);
-		//	for(%i=0;%i<clientGroup.getCount();%i++)
-		//	{
-		//		if(clientGroup.getObject(%i).player)
-		//		{
-		//			%num++;
-		//			%client = clientGroup.getObject(%i);
-		//		}
-		//	}
-		//	
-		//	if(!%num)
-		//		parent::checkLastManStanding(%a,%b);
-		//}
-		//else
-		//{
+		if($CA::ClientCount == 1 && clientGroup.getCount() > 1 && !$CA::SoloRoundStarted) // In case only one player is active
+		{
+			for(%i=0;%i<clientGroup.getCount();%i++) // Probably redundant now that $CA::SoloRoundStarted is implemented
+			{
+				if(clientGroup.getObject(%i).player)
+				{
+					%num++;
+					%client = clientGroup.getObject(%i);
+				}
+			}
+			
+			if(!%num) // Probably redundant now that $CA::SoloRoundStarted is implemented
+			{
+				cancel($CA::SoloRoundMsgSchedule);
+				parent::checkLastManStanding(%a,%b);
+			}
+			else
+			{
+				$CA::SoloRoundStarted = 1; // This is to make sure we don't prevent the next last man standing check (For example, if another player joins)
+				$CA::SoloRoundMsgSchedule = schedule(1000,0,messageAll,'',"\c5Solo round started because everyone is dead.");
+			}
+		}
+		else
+		{
+			cancel($CA::SoloRoundMsgSchedule);
 			parent::checkLastManStanding(%a,%b);
 			
 			for(%i=0;%i<clientGroup.getCount();%i++)
@@ -731,6 +744,8 @@ package CrumblingArenaPackage
 				$CA::Score[%client.bl_id]++;
 				$CA::Crumble = 0;
 				
+				cancel($CA::Loop::Modifier);
+				
 				awardRoundEndAchievements(%client);
 				
 				$CA::ScoreBricks[%client.bl_id] = $CA::ScoreBricks[%client.bl_id]+%client.player.bricksDestroyed;
@@ -742,9 +757,12 @@ package CrumblingArenaPackage
 				messageAll('',"\c3" @ %client.name SPC "\c5has won\c3" SPC $CA::Score[%client.bl_id] SPC "\c5time" @ %plural @ ".");
 			}
 			else if(%num == 0)
+			{
+				cancel($CA::Loop::Modifier);
 				$CA::GameEnded = 1;
+			}
 		}
-	//}
+	}
 
 	function GameConnection::spawnPlayer(%client,%b)
 	{
