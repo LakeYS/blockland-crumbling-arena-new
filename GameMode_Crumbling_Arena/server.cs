@@ -1,4 +1,4 @@
-playerNoJet.minImpactSpeed = 1;
+playerNoJet.minImpactSpeed = 4;
 
 if(getSubStr(getDateTime(),0,2) == 12)
 {
@@ -863,7 +863,7 @@ package CrumblingArenaPackage
 	function PlayerNoJet::OnImpact(%this,%obj,%col,%vec,%force) // Borrowed this from the Blockheads Ruin X-Mas game-mode
 	{
 		parent::onImpact(%this, %obj, %col, %a, %b, %c);
-		if(%force < 3)
+		if(%force < 4)
 			return;
 		if(%col.getdatablock() != %this)
 			return;
