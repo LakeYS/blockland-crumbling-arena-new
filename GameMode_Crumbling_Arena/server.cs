@@ -524,12 +524,6 @@ function awardRoundEndAchievements(%client)
 		$CA::AchievementWinner[%blid] = 1;
 	}
 	
-	if(!%player.achievementNoCautious && $CA::ClientCount > 3 && !$CA::AchievementCautious[%blid])
-	{
-		messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Cautious\c5 achievement!");
-		$CA::AchievementCautious[%blid] = 1;
-	}
-	
 	switch($CA::RoundModifierID)
 	{
 		case 1: //Pushbrooms
@@ -595,6 +589,12 @@ function awardRoundEndAchievements(%client)
 				$CA::AchievementSpace[%blid] = 1;
 				return;
 			}
+	}
+	
+	if(!%player.achievementNoCautious && $CA::ClientCount > 3 && !$CA::AchievementCautious[%blid])
+	{
+		messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Cautious\c5 achievement!");
+		$CA::AchievementCautious[%blid] = 1;
 	}
 	
 	if($CA::ClientCount > 3 && !$CA::AchievementNormal[%blid])
@@ -696,37 +696,55 @@ package CrumblingArenaPackage
 
 	function MinigameSO::checkLastManStanding(%a,%b)
 	{
-		parent::checkLastManStanding(%a,%b);
-		
-		for(%i=0;%i<clientGroup.getCount();%i++)
-		{
-			if(clientGroup.getObject(%i).player)
+		//if($CA::ClientCount == 1 && clientGroup.getCount() > 1) // If everyone died at the start of the round, start a solo round
+		//{
+		//	echo(startsoloround);
+		//	for(%i=0;%i<clientGroup.getCount();%i++)
+		//	{
+		//		if(clientGroup.getObject(%i).player)
+		//		{
+		//			%num++;
+		//			%client = clientGroup.getObject(%i);
+		//		}
+		//	}
+		//	
+		//	if(!%num)
+		//		parent::checkLastManStanding(%a,%b);
+		//}
+		//else
+		//{
+			parent::checkLastManStanding(%a,%b);
+			
+			for(%i=0;%i<clientGroup.getCount();%i++)
 			{
-				%num++;
-				%client = clientGroup.getObject(%i);
+				if(clientGroup.getObject(%i).player)
+				{
+					%num++;
+					%client = clientGroup.getObject(%i);
+				}
 			}
-		}
 
-		if(%num == 1 && !$CA::Winner)
-		{
-			$CA::Winner = 1;
-			$CA::GameEnded = 1;
-			$CA::Score[%client.bl_id]++;
-			$CA::Crumble = 0;
-			
-			awardRoundEndAchievements(%client);
-			
-			$CA::ScoreBricks[%client.bl_id] = $CA::ScoreBricks[%client.bl_id]+%client.player.bricksDestroyed;
-			%client.player.bricksDestroyed = 0;
-			
-			if($CA::Score[%client.bl_id] != 1)
-				%plural = "s";
-			
-			messageAll('',"\c3" @ %client.name SPC "\c5has won\c3" SPC $CA::Score[%client.bl_id] SPC "\c5time" @ %plural @ ".");
+			if(%num == 1 && !$CA::Winner)
+			{
+				$CA::Winner = 1;
+				$CA::GameEnded = 1;
+				$CA::Score[%client.bl_id]++;
+				$CA::Crumble = 0;
+				
+				awardRoundEndAchievements(%client);
+				
+				$CA::ScoreBricks[%client.bl_id] = $CA::ScoreBricks[%client.bl_id]+%client.player.bricksDestroyed;
+				%client.player.bricksDestroyed = 0;
+				
+				if($CA::Score[%client.bl_id] != 1)
+					%plural = "s";
+				
+				messageAll('',"\c3" @ %client.name SPC "\c5has won\c3" SPC $CA::Score[%client.bl_id] SPC "\c5time" @ %plural @ ".");
+			}
+			else if(%num == 0)
+				$CA::GameEnded = 1;
 		}
-		else if(%num == 0)
-			$CA::GameEnded = 1;
-	}
+	//}
 
 	function GameConnection::spawnPlayer(%client,%b)
 	{
@@ -833,8 +851,8 @@ package CrumblingArenaPackage
 			%obj = clientGroup.getObject(%i);
 			if(isObject(%obj.player) && getWord(%obj.player.getVelocity(),2) < -40)
 			{
-				if($CA::Time <= 7)
-					$CA::ClientCount--; // If a player dies within the first seven seconds, exclude them from the "unstable" timer.
+				if($CA::Time <= 10) //TODO: dont subtract if a player was killed by sword or broom
+					$CA::ClientCount--; // If a player dies within the first ten seconds, exclude them from the "unstable" timer.
 				else
 				{
 					$CA::ScoreBricks[%obj.bl_id] = $CA::ScoreBricks[%obj.bl_id]+%obj.player.bricksDestroyed;
