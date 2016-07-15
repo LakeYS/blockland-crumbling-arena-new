@@ -246,12 +246,12 @@ function buildArena()
 				
 				};
 				
-				if(getRandom(1,2800) == 1) //
-				{
-					%brick.setEmitter("AdminWandEmitterB");
-					%brick.setColorFX(5);
-					%brick.isBombBrick = 1;
-				}
+				//if(getRandom(1,2800) == 1) //
+				//{
+				//	%brick.setEmitter("AdminWandEmitterB");
+				//	%brick.setColorFX(5);
+				//	%brick.isBombBrick = 1;
+				//}
 				
 				%brick.plant();
 				%brick.setTrusted(1);
@@ -872,7 +872,7 @@ package CrumblingArenaPackage
 		
 		%force = mFloor(%force);
 		
-		if(!$CA::AchievementStomp[%obj.client.bl_id])
+		if(getSimTime() - $CA::Start > $CA::GameDelay && !$CA::AchievementStomp[%obj.client.bl_id])
 		{
 			messageAll('',"\c3" @ %obj.client.name @ "\c5 has earned the \c3Mario\c5 achievement!");
 			$CA::AchievementStomp[%obj.client.bl_id] = 1;
