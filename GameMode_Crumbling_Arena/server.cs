@@ -818,7 +818,7 @@ package CrumblingArenaPackage
 		if(getSimTime() - $CA::Start > %crumbleStart && !$CA::GameEnded || $CA::Crumble && !$CA::GameEnded)
 		{
 			$CA::Delay = 280;
-			if(brickGroup_888888.getCount() >= 0) // In case there are no bricks left
+			if(brickGroup_888888.getCount() >= 1) // In case there are no bricks left
 			{
 				for(%i=0;%i<$CA::Layers;%i++)
 				{
