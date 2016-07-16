@@ -340,7 +340,7 @@ function makeNewSpawn(%x,%y,%z,%b1,%b2)
 function doRoundModifier(%which)
 {
 	//talk("doRoundModifier" SPC %which);
-	centerPrintAll("<font:impact:50>\c3BEGIN!",5);
+	centerPrintAll("<font:impact:100>\c3BEGIN!",5);
 	$CA::RoundModifierID = %which;
 	
 	if($CA::Trees)
@@ -376,7 +376,7 @@ function doRoundModifier(%which)
 						messageClient(%obj,'MsgItemPickup','',0,PushBroomItem.getID());
 					}
 				}
-				centerPrintAll("<font:impact:50>\c3Pushbrooms!",5);
+				centerPrintAll("<font:impact:100>\c3Pushbrooms!",5);
 			}
 
 		case 2: //Huge
@@ -387,10 +387,10 @@ function doRoundModifier(%which)
 				if(isObject(%obj.player))
 					%obj.player.setPlayerScale("1.75 1.75 1.75");
 			}
-			centerPrintAll("<font:impact:50>\c3Giants!",5);
+			centerPrintAll("<font:impact:100>\c3Giants!",5);
 
 		case 3: //Auto crumble
-			centerPrintAll("<font:impact:50>\c3The arena is unstable!",5);
+			centerPrintAll("<font:impact:100>\c3The arena is unstable!",5);
 			$CA::Crumble = 1;
 			$CA::FTWarn = 1;
 
@@ -402,7 +402,7 @@ function doRoundModifier(%which)
 				if(isObject(%obj.player))
 					%obj.player.setPlayerScale("0.6 0.6 0.6");
 			}
-			centerPrintAll("<font:impact:50>\c3Haha, alright then shortstuffs.",5);
+			centerPrintAll("<font:impact:100>\c3Haha, alright then shortstuffs.",5);
 
 		case 5: //Horses
 			for(%i=0;%i<clientGroup.getCount();%i++)
@@ -412,7 +412,7 @@ function doRoundModifier(%which)
 				if(isObject(%obj.player))
 					%obj.player.setDatablock(HorseArmor);
 			}
-			centerPrintAll("<font:impact:50>\c3Horses, because horses.",5);
+			centerPrintAll("<font:impact:100>\c3Horses, because horses.",5);
 
 		case 6: //Swords
 			if($CA::ClientCount > 1)
@@ -427,7 +427,7 @@ function doRoundModifier(%which)
 						messageClient(%obj,'MsgItemPickup','',0,SwordItem.getID());
 					}
 				}
-				centerPrintAll("<font:impact:50>\c3Swords!",5);
+				centerPrintAll("<font:impact:100>\c3Swords!",5);
 			}
 		case 7: //Slow
 			for(%i=0;%i<clientGroup.getCount();%i++)
@@ -447,7 +447,7 @@ function doRoundModifier(%which)
 					%obj.player.setMaxCrouchSideSpeed(%d.maxSideCrouchSpeed/2);
 				}
 			}
-			centerPrintAll("<font:impact:50>\c3Slowpokes!",5);
+			centerPrintAll("<font:impact:100>\c3Slowpokes!",5);
 		case 8: //Fast
 		for(%i=0;%i<clientGroup.getCount();%i++)
 		{
@@ -466,11 +466,11 @@ function doRoundModifier(%which)
 				%obj.player.setMaxCrouchSideSpeed(%d.maxSideCrouchSpeed*2);
 			}
 		}
-		centerPrintAll("<font:impact:50>\c3Gotta go fast!",5);
+		centerPrintAll("<font:impact:100>\c3Gotta go fast!",5);
 		case 9: //Low gravity
 			CAGravityZone.gravityMod = 0.6;
 			CAGravityZone.sendUpdate(); // Fixed?
-			centerPrintAll("<font:impact:50>\c3SPACE!",5);
+			centerPrintAll("<font:impact:100>\c3SPACE!",5);
 	}
 }
 
@@ -864,7 +864,7 @@ package CrumblingArenaPackage
 		if($CA::TimeDisplay $= "0:0-")
 		{
 			$CA::TimeDisplay = "0:00";
-			commandToAll('centerPrint',"<font:impact:34>\c3Arena size: " @ $CA::ArenaSizeDisplay @ "<br>\c3Brick type: " @ $CA::ArenaBrick @ "<br><br><font:impact:60>\c3" @ mFloor(($CA::GameDelay - (getSimTime() - $CA::Start))/1000)+1,mFloor($CA::GameDelay/1000));
+			commandToAll('centerPrint',"<font:impact:50>\c3Arena size: " @ $CA::ArenaSizeDisplay @ "<br>\c3Brick type: " @ $CA::ArenaBrick @ "<br><br><font:impact:60>\c3" @ mFloor(($CA::GameDelay - (getSimTime() - $CA::Start))/1000)+1,mFloor($CA::GameDelay/1000));
 		}
 		
 		if(!$CA::RoundStartMessage)
