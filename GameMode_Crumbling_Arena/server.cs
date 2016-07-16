@@ -246,12 +246,12 @@ function buildArena()
 				
 				};
 				
-				//if(getRandom(1,2800) == 1) //
-				//{
-				//	%brick.setEmitter("AdminWandEmitterB");
-				//	%brick.setColorFX(5);
-				//	%brick.isBombBrick = 1;
-				//}
+				if(getRandom(1,2200) == 1) //
+				{
+					%brick.setEmitter("AdminWandEmitterB");
+					%brick.setColorFX(5);
+					%brick.isBombBrick = 1;
+				}
 				
 				%brick.plant();
 				%brick.setTrusted(1);
@@ -516,7 +516,20 @@ function serverCmdStats(%client) // WIP
 	if(!%bricks)
 		%bricks = 0;
 	
-	messageClient(%client,'CAStats',"\c0You have won \c6" @ %wins @ "\c0 times. You have died \c6" @ %loss @ "\c0 times. You have destroyed a total of \c6" @ %bricks @ "\c0 bricks!");
+	messageClient(%client,'CAStats',"\c5You have won \c3" @ %wins @ "\c5 times. You have died \c3" @ %loss @ "\c5 times. You have destroyed a total of \c3" @ %bricks @ "\c5 bricks!");
+}
+
+function serverCmdAchievements(%client) // WIP
+{
+	%msg = "\c5(Requires at least \c34\c5 active players)";
+	messageClient(%client,'CAAchievementList',"\c3Winner!\c5 - Win a game against four players or more.");
+	messageClient(%client,'',%msg);
+	messageClient(%client,'CAAchievementList',"\c3Cautious\c5 - Win a normal round by only touching bricks on the top layer.");
+	messageClient(%client,'',%msg);
+	messageClient(%client,'CAAchievementList',"\c3Mario\c5 - Jump on someone's head!");
+	messageClient(%client,'',"\c5There are \c39\c5\ other achievements that you can get for winning certain modes! (four or more players required)");
+	messageClient(%client,'',"\c3Press Page Up and Page Down to scroll in chat.");
+
 }
 
 function awardRoundEndAchievements(%client)
@@ -528,6 +541,8 @@ function awardRoundEndAchievements(%client)
 		$CA::AchievementWinner[%blid] = 1;
 	}
 	
+	
+	
 	switch($CA::RoundModifierID)
 	{
 		case 1: //Pushbrooms
@@ -535,64 +550,64 @@ function awardRoundEndAchievements(%client)
 			{
 				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Sweeping the Floor\c5 achievement!");
 				$CA::AchievementBrooms[%blid] = 1;
-				return;
 			}
+			return;
 		case 2: //Huge
 			if($CA::ClientCount > 3 && !$CA::AchievementGiant[%blid])
 			{
 				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Giant\c5 achievement!");
 				$CA::AchievementGiant[%blid] = 1;
-				return;
 			}
+			return;
 		case 3: //Auto crumble
 			if($CA::ClientCount > 3 && !$CA::AchievementUnstable[%blid])
 			{
 				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Askew\c5 achievement!");
 				$CA::AchievementUnstable[%blid] = 1;
-				return;
 			}
+			return;
 		case 4: //Small playerscale
 			if($CA::ClientCount > 3 && !$CA::AchievementTiny[%blid])
 			{
 				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Ant\c5 achievement!");
 				$CA::AchievementTiny[%blid] = 1;
-				return;
 			}
+			return;
 		case 5: //Horses
 			if($CA::ClientCount > 3 && !$CA::AchievementHorse[%blid])
 			{
 				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Horse\c5 achievement!");
 				$CA::AchievementHorse[%blid] = 1;
-				return;
 			}
+			return;
 		case 6: //Swords
 			if($CA::ClientCount > 3 && !$CA::AchievementSwords[%blid])
 			{
 				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Sword Fighter\c5 achievement!");
 				$CA::AchievementSwords[%blid] = 1;
-				return;
 			}
+			return;
 		case 7: //Slow
 			if($CA::ClientCount > 3 && !$CA::AchievementSlow[%blid])
 			{
 				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Snail\c5 achievement!");
 				$CA::AchievementSlow[%blid] = 1;
-				return;
 			}
+			return;
 		case 8: //Fast
 			if($CA::ClientCount > 3 && !$CA::AchievementFast[%blid])
 			{
 				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Hedgehog\c5 achievement!");
 				$CA::AchievementFast[%blid] = 1;
-				return;
 			}
+			return;
 		case 9: //Low gravity
 			if($CA::ClientCount > 3 && !$CA::AchievementSpace[%blid])
 			{
 				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Astronaut\c5 achievement!");
 				$CA::AchievementSpace[%blid] = 1;
-				return;
 			}
+			return;
 	}
 	
 	if(!%player.achievementNoCautious && $CA::ClientCount > 3 && !$CA::AchievementCautious[%blid])
@@ -858,7 +873,7 @@ package CrumblingArenaPackage
 		$CA::RoundStartMessage = 1;
 		
 		// This is to kill players that try to screw things up with the DLL. (Temporary until I can make it brick-based)
-		if(getSimTime()-$CA::LastLagCheck > 2000) //todo: make this only apply after round start
+		if(getSimTime()-$CA::LastLagCheck > 2800 && getSimTime() - $CA::Start > $CA::GameDelay && getSimTime() - $CA::Start > $CA::GameDelay)
 		{
 			$CA::LastLagCheck = getSimTime(); // Reset the timer
 			%lagCheck = 1;
@@ -869,7 +884,7 @@ package CrumblingArenaPackage
 			%obj = clientGroup.getObject(%i);
 			if(isObject(%obj.player) && getWord(%obj.player.getVelocity(),2) < -40)
 			{
-				if($CA::Time <= 10) //TODO: dont subtract if a player was killed by sword or broom
+				if($CA::Time <= 9) //TODO: dont subtract if a player was killed by sword or broom
 					$CA::ClientCount--; // If a player dies within the first ten seconds, exclude them from the "unstable" timer.
 				else
 				{
