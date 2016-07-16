@@ -1,12 +1,16 @@
 playerNoJet.minImpactSpeed = 4;
 
-RTB_registerPref("Enable Music", "Crumbling Arena", "$CA::Music", "bool", "GameMode_Crumbling_Arena", "0", 0, 0);
+if(isFile("Add-Ons/Server_HatMod/server.cs"))
+	exec("Add-Ons/Server_HatMod/server.cs");
 
-if(getSubStr(getDateTime(),0,2) == 12)
-{
-	$CA::XmasStuff = 1;
-	exec("Add-Ons/Brick_Christmas_Tree/server.cs");
-}
+if(isFunction(RTB_registerPref))
+	RTB_registerPref("Enable Music", "Crumbling Arena", "$CA::Music", "bool", "GameMode_Crumbling_Arena", "0", 0, 0);
+
+//if(getSubStr(getDateTime(),0,2) == 12)
+//{
+//	$CA::XmasStuff = 1;
+//	exec("Add-Ons/Brick_Christmas_Tree/server.cs");
+//}
 
 exec("./Support_CustomRangeMusic.cs");
 createMusicDatablocks();
@@ -68,7 +72,7 @@ datablock PlayerData(PlayerFrozenArmor : PlayerStandardArmor)
 if(!$CA::HasLoaded)
 {
 	$CA::HasLoaded = 1;
-	$CA::Music = 0;
+	$CA::Music = 1;
 
 	%filename = "config/server/CrumbleArena/scores.cs";
 	if(isFile(%filename))
