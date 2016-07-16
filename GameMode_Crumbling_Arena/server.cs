@@ -1,5 +1,7 @@
 playerNoJet.minImpactSpeed = 4;
 
+RTB_registerPref("Enable Music", "Crumbling Arena", "$CA::Music", "bool", "GameMode_Crumbling_Arena", "0", 0, 0);
+
 if(getSubStr(getDateTime(),0,2) == 12)
 {
 	$CA::XmasStuff = 1;
@@ -104,7 +106,6 @@ function deleteGround()
 		groundPlane.delete();
 }
 
-
 function createMusicDB()
 {
 	if(isObject(MusicData))
@@ -187,8 +188,6 @@ function getBrickSize(%brick)
 {
 	return %brick.brickSizeX/2 SPC %brick.brickSizeY/2 SPC %brick.brickSizeZ/5;
 }
-
-//function placeArenaBrick(
 
 function buildArena()
 {
@@ -484,7 +483,7 @@ function serverCmdToggleHud(%client)
 
 function serverCmdToggleMusic(%client)
 {
-	if(%client.bl_id == 999999 || %client.bl_id == getNumKeyID())
+	if(%client.bl_id == 999999 || %client.isAdmin)
 	{
 
 		if($CA::Music)
@@ -527,6 +526,7 @@ function serverCmdAchievements(%client) // WIP
 	//messageClient(%client,'CAAchievementList',"\c3Cautious\c5 - Win a normal round by only touching bricks on the top layer.");
 	//messageClient(%client,'',%msg);
 	messageClient(%client,'CAAchievementList',"\c3Mario\c5 - Jump on someone's head!");
+	messageClient(%client,'CAAchievementList',"\c3Peace Treaty\c5 - Drop your weapon in a sword or broom round.");
 	messageClient(%client,'',"\c5There are \c39\c5\ other achievements that you can get for winning certain modes! (four or more players required)");
 	messageClient(%client,'',"\c3Press Page Up and Page Down to scroll in chat.");
 
@@ -933,6 +933,20 @@ package CrumblingArenaPackage
 		
 		//centerprint(%col.client, "<bitmap:base/client/ui/ci/crater> \c0Stomp \c6from \c0" @ %obj.client.name @ " \c6at \c0" @ %force @ " \c6ft/sec. " @ %vec, 4);
 		//centerprint(%obj.client, "<bitmap:base/client/ui/ci/crater> \c0Stomp \c6to \c0" @ %col.client.name @ " \c6at \c0" @ %force @ " \c6ft/sec. " @ %vec, 4);
+	}
+	
+	function serverCmdDropTool(%client,%a)
+	{
+		Parent::serverCmdDropTool(%client,%a);
+		
+		if($CA::RoundModifierID == 6 || $CA::RoundModifierID == 1)
+		{
+			if(getSimTime() - $CA::Start > $CA::GameDelay && $CA::ClientCount > 1 && !$CA::AchievementDrop[%client.bl_id])
+			{
+				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Peace Treaty\c5 achievement!");
+				$CA::AchievementDrop[%client.bl_id] = 1;
+			}
+		}
 	}
 };
 activatePackage(CrumblingArenaPackage);
