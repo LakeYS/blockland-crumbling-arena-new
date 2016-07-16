@@ -524,8 +524,8 @@ function serverCmdAchievements(%client) // WIP
 	%msg = "\c5(Requires at least \c34\c5 active players)";
 	messageClient(%client,'CAAchievementList',"\c3Winner!\c5 - Win a game against four players or more.");
 	messageClient(%client,'',%msg);
-	messageClient(%client,'CAAchievementList',"\c3Cautious\c5 - Win a normal round by only touching bricks on the top layer.");
-	messageClient(%client,'',%msg);
+	//messageClient(%client,'CAAchievementList',"\c3Cautious\c5 - Win a normal round by only touching bricks on the top layer.");
+	//messageClient(%client,'',%msg);
 	messageClient(%client,'CAAchievementList',"\c3Mario\c5 - Jump on someone's head!");
 	messageClient(%client,'',"\c5There are \c39\c5\ other achievements that you can get for winning certain modes! (four or more players required)");
 	messageClient(%client,'',"\c3Press Page Up and Page Down to scroll in chat.");
@@ -610,11 +610,11 @@ function awardRoundEndAchievements(%client)
 			return;
 	}
 	
-	if(!%player.achievementNoCautious && $CA::ClientCount > 3 && !$CA::AchievementCautious[%blid])
-	{
-		messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Cautious\c5 achievement!");
-		$CA::AchievementCautious[%blid] = 1;
-	}
+	//if(!%player.achievementNoCautious && $CA::ClientCount > 3 && !$CA::AchievementCautious[%blid])
+	//{
+	//	messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Cautious\c5 achievement!");
+	//	$CA::AchievementCautious[%blid] = 1;
+	//}
 	
 	if($CA::ClientCount > 3 && !$CA::AchievementNormal[%blid])
 	{
