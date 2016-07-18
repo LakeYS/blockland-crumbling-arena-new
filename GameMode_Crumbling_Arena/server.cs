@@ -890,7 +890,7 @@ package CrumblingArenaPackage
 			%obj = clientGroup.getObject(%i);
 			if(isObject(%obj.player) && getWord(%obj.player.getVelocity(),2) < -40)
 			{
-				if($CA::Time <= 9 && !%obj.noIdle)
+				if($CA::Time <= 9 && !%obj.player.noIdle)
 					$CA::ClientCount--; // If a player dies within the first ten seconds, exclude them from the "unstable" timer.
 				else
 				{
@@ -958,7 +958,7 @@ package CrumblingArenaPackage
 	function serverCmdUseTool(%client,%a)
 	{
 		Parent::serverCmdUseTool(%client,%a);
-		%client.noIdle = 1;
+		%client.player.noIdle = 1;
 	}
 };
 activatePackage(CrumblingArenaPackage);
