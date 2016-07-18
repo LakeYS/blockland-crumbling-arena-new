@@ -1,7 +1,6 @@
 playerNoJet.minImpactSpeed = 4;
 
-if(isFile("Add-Ons/Server_HatMod/server.cs"))
-	exec("Add-Ons/Server_HatMod/server.cs");
+
 
 if(isFunction(RTB_registerPref))
 	RTB_registerPref("Enable Music", "Crumbling Arena", "$CA::Music", "bool", "GameMode_Crumbling_Arena", "0", 0, 0);
@@ -99,6 +98,9 @@ if(!$CA::HasLoaded)
 	};
 	missiongroup.add(CAGravityZone);
 	CAGravityZone.activate();
+	
+	if(isFile("Add-Ons/Server_HatMod/server.cs"))
+		exec("Add-Ons/Server_HatMod/server.cs");
 
 	schedule(1000,0,createMusicDB);
 	schedule(1000,0,deleteGround);
@@ -888,12 +890,12 @@ package CrumblingArenaPackage
 			%obj = clientGroup.getObject(%i);
 			if(isObject(%obj.player) && getWord(%obj.player.getVelocity(),2) < -40)
 			{
-				if($CA::Time <= 9) //TODO: dont subtract if a player was killed by sword or broom
+				if($CA::Time <= 9 && !%obj.noIdle)
 					$CA::ClientCount--; // If a player dies within the first ten seconds, exclude them from the "unstable" timer.
 				else
 				{
 					$CA::ScoreBricks[%obj.bl_id] = $CA::ScoreBricks[%obj.bl_id]+%obj.player.bricksDestroyed;
-					$CA::ScoreLoss[%obj.bl_id]++; // Counts as a loss if a) 
+					$CA::ScoreLoss[%obj.bl_id]++; // Counts as a loss
 				}
 				%obj.player.kill();
 			}
@@ -951,6 +953,12 @@ package CrumblingArenaPackage
 				$CA::AchievementDrop[%client.bl_id] = 1;
 			}
 		}
+	}
+	
+	function serverCmdUseTool(%client,%a)
+	{
+		Parent::serverCmdUseTool(%client,%a);
+		%client.noIdle = 1;
 	}
 };
 activatePackage(CrumblingArenaPackage);
