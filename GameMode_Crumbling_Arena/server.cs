@@ -1,9 +1,5 @@
 playerNoJet.minImpactSpeed = 4;
-
-
-
-if(isFunction(RTB_registerPref))
-	RTB_registerPref("Enable Music", "Crumbling Arena", "$CA::Music", "bool", "GameMode_Crumbling_Arena", "0", 0, 0);
+playerNoJet.groundImpactShakeAmp = "0.5 0.5 0.5";
 
 //if(getSubStr(getDateTime(),0,2) == 12)
 //{
@@ -43,35 +39,14 @@ datablock fxDTSBrickData(brick15xMusicData : brickMusicData)
 	musicDescription = Audio15xMusicLooping3d;
 };
 
-datablock PlayerData(PlayerFrozenArmor : PlayerStandardArmor)
-{
-	runForce = 0;
-	runEnergyDrain = 0;
-	minRunEnergy = 0;
-	maxForwardSpeed = 0;
-	maxBackwardSpeed = 0;
-	maxSideSpeed = 0;
-	horizResistFactor = 1.0;
-	thirdPersonOnly = 0;
-
-	maxForwardCrouchSpeed = 0;
-	maxBackwardCrouchSpeed = 0;
-	maxSideCrouchSpeed = 0;
-
-	jumpForce = 0;
-	jumpEnergyDrain = 0;
-	minJumpEnergy = 0;
-	jumpDelay = 0;
-
-	minJetEnergy = 0;
-	jetEnergyDrain = 0;
-	canJet = 0;
-};
-
 if(!$CA::HasLoaded)
 {
 	$CA::HasLoaded = 1;
-	$CA::Music = 1;
+	
+	if(isFunction(RTB_registerPref))
+		RTB_registerPref("Enable Music", "Crumbling Arena", "$CA::Music", "bool", "GameMode_Crumbling_Arena", "0", 0, 0);
+	else
+		$CA::Music = 1;
 
 	%filename = "config/server/CrumbleArena/scores.cs";
 	if(isFile(%filename))
@@ -462,13 +437,13 @@ function doRoundModifier(%which)
 			{
 				%d = %obj.player.dataBlock;
 				
-				%obj.player.setMaxForwardSpeed(%d.maxForwardSpeed*2);
-				%obj.player.setMaxBackwardSpeed(%d.maxBackwardSpeed*2);
-				%obj.player.setMaxSideSpeed(%d.maxSideSpeed*2);
+				%obj.player.setMaxForwardSpeed(%d.maxForwardSpeed*1.8);
+				%obj.player.setMaxBackwardSpeed(%d.maxBackwardSpeed*1.8);
+				%obj.player.setMaxSideSpeed(%d.maxSideSpeed*1.8);
 				
-				%obj.player.setMaxCrouchForwardSpeed(%d.maxForwardCrouchSpeed*2);
-				%obj.player.setMaxCrouchBackwardSpeed(%d.maxBackwardCrouchSpeed*2);
-				%obj.player.setMaxCrouchSideSpeed(%d.maxSideCrouchSpeed*2);
+				%obj.player.setMaxCrouchForwardSpeed(%d.maxForwardCrouchSpeed*1.8);
+				%obj.player.setMaxCrouchBackwardSpeed(%d.maxBackwardCrouchSpeed*1.8);
+				%obj.player.setMaxCrouchSideSpeed(%d.maxSideCrouchSpeed*1.8);
 			}
 		}
 		centerPrintAll("<font:impact:60>\c3Gotta go fast!",5);
@@ -526,14 +501,12 @@ function serverCmdStats(%client) // WIP
 
 function serverCmdAchievements(%client) // WIP
 {
-	%msg = "\c5(Requires at least \c34\c5 active players)";
-	messageClient(%client,'CAAchievementList',"\c3Winner!\c5 - Win a game against four players or more.");
-	messageClient(%client,'',%msg);
-	//messageClient(%client,'CAAchievementList',"\c3Cautious\c5 - Win a normal round by only touching bricks on the top layer.");
-	//messageClient(%client,'',%msg);
+	%msg = "\c5(Requires at least \c33\c5 active players)";
+	messageClient(%client,'CAAchievementList',"\c3Winner!\c5 - Win a game against four players or more." SPC %msg);
+	messageClient(%client,'CAAchievementList',"\c3Cautious\c5 - Win a normal round by only touching bricks on the top layer." SPC %msg);
+	messageClient(%client,'CAAchievementList',"\c3Nerf This!\c5 - Die from an explosive brick.");
 	messageClient(%client,'CAAchievementList',"\c3Mario\c5 - Jump on someone's head!");
 	messageClient(%client,'CAAchievementList',"\c3Peace Treaty\c5 - Drop your weapon in a sword or broom round.");
-	messageClient(%client,'',"\c5There are \c39\c5\ other achievements that you can get for winning certain modes! (four or more players required)");
 	messageClient(%client,'',"\c3Press Page Up and Page Down to scroll in chat.");
 
 }
@@ -541,86 +514,84 @@ function serverCmdAchievements(%client) // WIP
 function awardRoundEndAchievements(%client)
 {
 	%blid = %client.bl_id;
-	if($CA::Score[%blid] >= 1 && $CA::ClientCount > 3 && !$CA::AchievementWinner[%blid])
+	if($CA::Score[%blid] >= 1 && $CA::ClientCount > 2 && !$CA::AchievementWinner[%blid])
 	{
 		messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Winner!\c5 achievement!");
 		$CA::AchievementWinner[%blid] = 1;
 	}
-	
-	
 	
 	switch($CA::RoundModifierID)
 	{
 		case 1: //Pushbrooms
 			if($CA::ClientCount > 3 && !$CA::AchievementBrooms[%blid])
 			{
-				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Sweeping the Floor\c5 achievement!");
+				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Broom Fighter\c5 achievement!");
 				$CA::AchievementBrooms[%blid] = 1;
 			}
 			return;
 		case 2: //Huge
 			if($CA::ClientCount > 3 && !$CA::AchievementGiant[%blid])
 			{
-				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Giant\c5 achievement!");
+				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Giant\c5 achievement!");
 				$CA::AchievementGiant[%blid] = 1;
 			}
 			return;
 		case 3: //Auto crumble
 			if($CA::ClientCount > 3 && !$CA::AchievementUnstable[%blid])
 			{
-				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Askew\c5 achievement!");
+				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Askew\c5 achievement!");
 				$CA::AchievementUnstable[%blid] = 1;
 			}
 			return;
 		case 4: //Small playerscale
 			if($CA::ClientCount > 3 && !$CA::AchievementTiny[%blid])
 			{
-				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Ant\c5 achievement!");
+				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Ant\c5 achievement!");
 				$CA::AchievementTiny[%blid] = 1;
 			}
 			return;
 		case 5: //Horses
 			if($CA::ClientCount > 3 && !$CA::AchievementHorse[%blid])
 			{
-				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Horse\c5 achievement!");
+				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Horse\c5 achievement!");
 				$CA::AchievementHorse[%blid] = 1;
 			}
 			return;
 		case 6: //Swords
 			if($CA::ClientCount > 3 && !$CA::AchievementSwords[%blid])
 			{
-				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Sword Fighter\c5 achievement!");
+				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Sword Fighter\c5 achievement!");
 				$CA::AchievementSwords[%blid] = 1;
 			}
 			return;
 		case 7: //Slow
 			if($CA::ClientCount > 3 && !$CA::AchievementSlow[%blid])
 			{
-				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Snail\c5 achievement!");
+				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Snail\c5 achievement!");
 				$CA::AchievementSlow[%blid] = 1;
 			}
 			return;
 		case 8: //Fast
 			if($CA::ClientCount > 3 && !$CA::AchievementFast[%blid])
 			{
-				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Hedgehog\c5 achievement!");
+				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Hedgehog\c5 achievement!");
 				$CA::AchievementFast[%blid] = 1;
 			}
 			return;
 		case 9: //Low gravity
 			if($CA::ClientCount > 3 && !$CA::AchievementSpace[%blid])
 			{
-				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Astronaut\c5 achievement!");
+				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Astronaut\c5 achievement!");
 				$CA::AchievementSpace[%blid] = 1;
 			}
 			return;
 	}
 	
-	//if(!%player.achievementNoCautious && $CA::ClientCount > 3 && !$CA::AchievementCautious[%blid])
-	//{
-	//	messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Cautious\c5 achievement!");
-	//	$CA::AchievementCautious[%blid] = 1;
-	//}
+	if(isObject(%player) && !%player.achievementNoCautious && $CA::ClientCount > 2 && !$CA::AchievementCautious[%blid])
+	{
+		messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Cautious\c5 achievement!");
+		$CA::AchievementCautious[%blid] = 1;
+	}
 	
 	if($CA::ClientCount > 3 && !$CA::AchievementNormal[%blid])
 	{
@@ -810,7 +781,7 @@ package CrumblingArenaPackage
 		
 		Parent::radiusDamage(%projectile,%a,%b,%c,%d,%e,%f,%g);
 	}
-
+	
 	function onServerDestroyed()
 	{
 		$CA::HasLoaded = 0;
@@ -904,6 +875,7 @@ package CrumblingArenaPackage
 				if(%obj.player.getTransform() $= %obj.player.lastTransform && %obj.player.getVelocity() !$= "0 0 0")
 				{
 					talk("Client appears to be frozen: " @ %obj.name @ "; transform=" @ %obj.player.getTransform() @ "; last=" @ %obj.player.lastTransform);
+					$CA::ClientCount--;
 					%obj.player.kill();
 				}
 				else
@@ -959,6 +931,12 @@ package CrumblingArenaPackage
 	{
 		Parent::serverCmdUseTool(%client,%a);
 		%client.player.noIdle = 1;
+	}
+	
+	function Player::Kill(%player) // doesn't account for /suicide
+	{
+		Parent::Kill(%player);
+		//talk("rip" SPC %player.client.name);
 	}
 };
 activatePackage(CrumblingArenaPackage);
