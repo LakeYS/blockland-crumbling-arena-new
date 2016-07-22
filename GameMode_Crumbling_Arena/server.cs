@@ -226,7 +226,7 @@ function buildArena()
 				
 				};
 				
-				if(getRandom(1,2200) == 1) //
+				if(getRandom(1,2000) == 1) //
 				{
 					%brick.setEmitter("AdminWandEmitterB");
 					%brick.setColorFX(5);
@@ -507,6 +507,7 @@ function serverCmdAchievements(%client) // WIP
 	messageClient(%client,'CAAchievementList',"\c3Nerf This!\c5 - Die from an explosive brick.");
 	messageClient(%client,'CAAchievementList',"\c3Mario\c5 - Jump on someone's head!");
 	messageClient(%client,'CAAchievementList',"\c3Peace Treaty\c5 - Drop your weapon in a sword or broom round.");
+	messageClient(%client,'CAAchievementList',"\c3WEEEEEEEEE!\c5 - Survive an explosive brick.");
 	messageClient(%client,'',"\c3Press Page Up and Page Down to scroll in chat.");
 
 }
@@ -660,6 +661,16 @@ package CrumblingArenaPackage
 		{
 			if(%this.colorID+1 != $CA::Layers)
 				%player.achievementNoCautious = 1;
+
+			if(%player.achievementExplosion)
+			{
+				%player.achievementExplosion = 0; // If the player is touching bricks, they have not died from an explosion.
+				if(!$CA::AchievementExplosionSurvive[%player.client.bl_id])
+				{
+					messageAll('',"\c3" @ %player.client.name @ "\c5 has earned the \c3WEEEEEEEEE!\c5 achievement!");
+					$CA::AchievementExplosionSurvive[%player.client.bl_id] = 1;
+				}
+			}
 			
 			%this.destroyBrick(0,"brickStep0");
 			%player.bricksDestroyed++;
@@ -774,10 +785,7 @@ package CrumblingArenaPackage
 	{
 		%client = %b.client;
 		if(%projectile.explosion $= "rocketExplosion" && !$CA::AchievementExplosion[%client.bl_id])
-		{
-			messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Nerf This!\c5 achievement!");
-			$CA::AchievementExplosion[%client.bl_id] = 1;
-		}
+			%client.player.achievementExplosion = 1; // Mark the player to receive the explosion achievement if they die. If they survive (aka they touch a brick)
 		
 		Parent::radiusDamage(%projectile,%a,%b,%c,%d,%e,%f,%g);
 	}
@@ -933,9 +941,15 @@ package CrumblingArenaPackage
 		%client.player.noIdle = 1;
 	}
 	
-	function Player::Kill(%player) // doesn't account for /suicide
+	function armor::onDisabled(%damage,%player,%a)
 	{
-		Parent::Kill(%player);
+		if(%player.achievementExplosion && !$CA::AchievementExplosion[%player.client.bl_id]) // If a player died after getting hit by an explosion, give them the achievement.
+		{
+			messageAll('',"\c3" @ %player.client.name @ "\c5 has earned the \c3Nerf This!\c5 achievement!");
+			$CA::AchievementExplosion[%player.client.bl_id] = 1;
+		}
+		
+		Parent::onDisabled(%damage,%player,%a);
 		//talk("rip" SPC %player.client.name);
 	}
 };
