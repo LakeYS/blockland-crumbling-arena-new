@@ -44,7 +44,7 @@ if(!$CA::HasLoaded)
 	$CA::HasLoaded = 1;
 	
 	if(isFunction(RTB_registerPref))
-		RTB_registerPref("Enable Music", "Crumbling Arena", "$CA::Music", "bool", "GameMode_Crumbling_Arena", "0", 0, 0);
+		RTB_registerPref("Enable Music", "Crumbling Arena", "$CA::Music", "bool", "GameMode_Crumbling_Arena", "1", 0, 0);
 	else
 		$CA::Music = 1;
 
