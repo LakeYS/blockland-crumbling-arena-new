@@ -28,8 +28,8 @@ datablock AudioDescription(Audio15xMusicLooping3d : AudioMusicLooping3d)
 datablock AudioProfile(brickStep0)
 {
 	filename = "./brickStep0.wav";
-	description = AudioClosest3d;
-	preload = false;
+	description = AudioClose3d;
+	preload = true;
 };
 
 datablock fxDTSBrickData(brick15xMusicData : brickMusicData)
@@ -882,7 +882,7 @@ package CrumblingArenaPackage
 					%obj.player.lastTransform = %obj.player.getTransform();
 			}
 			
-			if(%obj.HUD)
+			if(%obj.HUD && %obj.hasSpawnedOnce) // IMPORTANT: Never send bottom prints to clients that are loading. You will break the download system.
 				commandToClient(%obj,'bottomPrint',"<font:impact:45>\c3" @ $CA::TimeDisplay @ "<just:right>\c3" @ $CA::BrickCount SPC "bricks left",0,1); // Exclude the music brick
 		}
 		
