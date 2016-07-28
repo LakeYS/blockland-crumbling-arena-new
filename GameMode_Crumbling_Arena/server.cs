@@ -488,7 +488,7 @@ function serverCmdStats(%client) // WIP
 	%blid = %client.bl_id;
 	%wins = $CA::Score[%blid];
 	%loss = $CA::ScoreLoss[%blid];
-	%bricks = $CA::ScoreBricks[%blid];
+	%bricks = $CA::ScoreDestroyed[%blid];
 	
 	if(!%wins)
 		%wins = 0;
@@ -620,7 +620,7 @@ function serverCmdCommands(%client)
 deactivatePackage("CrumblingArenaPackage");
 package CrumblingArenaPackage
 {
-	function fxDTSBrick::destroyBrick(%this,%force,%sound)
+	function fxDTSBrick::destroyBrick(%this,%force,%sound,%player)
 	{	
 		if(%force)
 		{
@@ -640,6 +640,10 @@ package CrumblingArenaPackage
 				%this.schedule(3501,destroyBrick,1); // In case the brick mysteriously doesn't explode
 				return;
 			}
+			
+			if(isObject(%player))
+				%player.bricksDestroyed++;
+			
 			$CA::BrickCount--;
 			%this.crumbled = 1;
 			//%this.schedule(125,fakeKillBrick);
@@ -688,8 +692,7 @@ package CrumblingArenaPackage
 				}
 			}
 			
-			%this.destroyBrick(0,"brickStep0");
-			%player.bricksDestroyed++;
+			%this.destroyBrick(0,"brickStep0",%player);
 		}
 	}
 
@@ -767,7 +770,7 @@ package CrumblingArenaPackage
 				
 				awardRoundEndAchievements(%client);
 				
-				$CA::ScoreBricks[%client.bl_id] = $CA::ScoreBricks[%client.bl_id]+%client.player.bricksDestroyed;
+				$CA::ScoreDestroyed[%client.bl_id] = $CA::ScoreDestroyed[%client.bl_id]+%client.player.bricksDestroyed;
 				%client.player.bricksDestroyed = 0;
 				
 				if($CA::Score[%client.bl_id] != 1)
@@ -889,7 +892,7 @@ package CrumblingArenaPackage
 					$CA::ClientCount--; // If a player dies within the first ten seconds, exclude them from the "unstable" timer.
 				else
 				{
-					$CA::ScoreBricks[%obj.bl_id] = $CA::ScoreBricks[%obj.bl_id]+%obj.player.bricksDestroyed;
+					$CA::ScoreDestroyed[%obj.bl_id] = $CA::ScoreDestroyed[%obj.bl_id]+%obj.player.bricksDestroyed; // Add bricks destroyed to their stats
 					$CA::ScoreLoss[%obj.bl_id]++; // Counts as a loss
 				}
 				%obj.player.kill();
@@ -959,6 +962,9 @@ package CrumblingArenaPackage
 	
 	function armor::onDisabled(%damage,%player,%a)
 	{
+		//commandToClient(%player.client,'centerPrint',"You died!<br>Bricks destroyed: " @ %player.bricksDestroyed);
+		//messageClient(%player.client,'',"You died!<br>Bricks destroyed: " @ %player.bricksDestroyed);
+		
 		if(%player.achievementExplosion && !$CA::AchievementExplosion[%player.client.bl_id]) // If a player died after getting hit by an explosion, give them the achievement.
 		{
 			messageAll('',"\c3" @ %player.client.name @ "\c5 has earned the \c3Nerf This!\c5 achievement!");
