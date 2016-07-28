@@ -1,5 +1,5 @@
 playerNoJet.minImpactSpeed = 4;
-playerNoJet.groundImpactShakeAmp = "0.5 0.5 0.5";
+playerNoJet.groundImpactShakeAmp = "0.2 0.2 0.2";
 
 //if(getSubStr(getDateTime(),0,2) == 12)
 //{
@@ -75,7 +75,10 @@ if(!$CA::HasLoaded)
 	CAGravityZone.activate();
 	
 	if(isFile("Add-Ons/Server_HatMod/server.cs"))
+	{
+		$CA::Hatmod = 1;
 		exec("Add-Ons/Server_HatMod/server.cs");
+	}
 
 	schedule(1000,0,createMusicDB);
 	schedule(1000,0,deleteGround);
@@ -599,6 +602,19 @@ function awardRoundEndAchievements(%client)
 		//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Vanilla\c5 achievement!");
 		$CA::AchievementNormal[%blid] = 1;
 	}
+}
+
+function serverCmdHelp(%client)
+{
+	messageClient(%client,'listServerCmd',"\c3/achievements\c6: View all achievements");
+	messageClient(%client,'listServerCmd',"\c3/stats\c6: View your stats");
+	serverCmdHatHelp(%client);
+	messageClient(%client,'',"Type /help to view this list again. (Press Page Up and Page Down to scroll chat)");
+}
+
+function serverCmdCommands(%client)
+{
+	serverCmdHelp(%client);
 }
 
 deactivatePackage("CrumblingArenaPackage");

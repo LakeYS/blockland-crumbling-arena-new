@@ -76,4 +76,4 @@ $MiniGame::PlayerDataBlockName No-Jet Player
 
 $MiniGame::TimeLimit 300
 
-$Server::WelcomeMessage \c2Welcome %1, to the Crumbling Arena! Type /stats to view your stats. Type /achievements to view achievements.
+$Server::WelcomeMessage \c2Welcome %1, to the Crumbling Arena! Type /help for a list of commands.
