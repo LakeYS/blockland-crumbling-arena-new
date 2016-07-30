@@ -226,8 +226,13 @@ function buildArena()
 					shapeFxID = 0;
 					stackBL_ID = "-1";
 					numEvents = 1;
-				
 				};
+				
+				//if(%z == %arenaHeight-1)
+				//{
+				//	if(%y == %arenaSize-1 || %y == 0 || %x == %arenaSize-1 || %x == 0)
+				//		%brick.setColor(%arenaHeight-2);
+				//}
 				
 				if(getRandom(1,2000) == 1) //
 				{
@@ -314,6 +319,15 @@ function makeNewSpawn(%x,%y,%z,%b1,%b2)
 	
 	$CA::BrickCount = getBrickCount();
 	$CA::ClientCount = clientGroup.getCount();
+	
+	for(%i=0;%i<clientGroup.getCount();%i++) // We want to exclude people that are loading from the count.
+	{
+		%client = clientGroup.getObject(%i);
+		
+		if(!%client.minigame) // If they aren't in the minigame, they're still loading.
+			$CA::ClientCount--;
+	}
+	
 	$CA::Start = getSimTime();
 	
 	if($CA::ClientCount == 1)
@@ -463,6 +477,14 @@ function serverCmdToggleHud(%client)
 		%client.HUD = 0;
 	else
 		%client.HUD = 1;
+}
+
+function serverCmdToggleDebugHud(%client)
+{
+	if(%client.debugHUD)
+		%client.debugHUD = 0;
+	else
+		%client.debugHUD = 1;
 }
 
 function serverCmdToggleMusic(%client)
@@ -909,8 +931,11 @@ package CrumblingArenaPackage
 					%obj.player.lastTransform = %obj.player.getTransform();
 			}
 			
+			if(%obj.debugHUD)
+				%hudPrefix = "bd:" SPC %obj.player.bricksDestroyed SPC "cc: " @ $CA::ClientCount @ "<BR>";
+			
 			if(%obj.HUD && %obj.hasSpawnedOnce) // IMPORTANT: Never send bottom prints to clients that are loading. You will break the download system.
-				commandToClient(%obj,'bottomPrint',"<font:impact:45>\c3" @ $CA::TimeDisplay @ "<just:right>\c3" @ $CA::BrickCount SPC "bricks left",0,1); // Exclude the music brick
+				commandToClient(%obj,'bottomPrint',%hudPrefix @ "<font:impact:45>\c3" @ $CA::TimeDisplay @ "<just:right>\c3" @ $CA::BrickCount SPC "bricks left",0,1); // Exclude the music brick
 		}
 		
 		$CA::Loop::Velocity = schedule(10,0,checkVelocity);
@@ -963,7 +988,7 @@ package CrumblingArenaPackage
 	function armor::onDisabled(%damage,%player,%a)
 	{
 		//commandToClient(%player.client,'centerPrint',"You died!<br>Bricks destroyed: " @ %player.bricksDestroyed);
-		//messageClient(%player.client,'',"You died!<br>Bricks destroyed: " @ %player.bricksDestroyed);
+		messageClient(%player.client,'',"\You died!<br>Bricks destroyed: \c6" @ %player.bricksDestroyed);
 		
 		if(%player.achievementExplosion && !$CA::AchievementExplosion[%player.client.bl_id]) // If a player died after getting hit by an explosion, give them the achievement.
 		{
