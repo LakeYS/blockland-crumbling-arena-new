@@ -1,3 +1,5 @@
+exec("./achievements.cs");
+
 playerNoJet.minImpactSpeed = 4;
 playerNoJet.groundImpactShakeAmp = "0.2 0.2 0.2";
 
@@ -51,10 +53,6 @@ if(!$CA::HasLoaded)
 	%filename = "config/server/CrumbleArena/scores.cs";
 	if(isFile(%filename))
 		exec(%filename);
-	
-	%filenameB = "config/server/CrumbleArena/achievements.cs";
-	if(isFile(%filenameB))
-		exec(%filenameB);
 	
 	new PhysicalZone(CAGravityZone)
 	{
@@ -524,108 +522,6 @@ function serverCmdStats(%client) // WIP
 	messageClient(%client,'CAStats',"\c5You have won \c3" @ %wins @ "\c5 times. You have died \c3" @ %loss @ "\c5 times. You have destroyed a total of \c3" @ %bricks @ "\c5 bricks!");
 }
 
-function serverCmdAchievements(%client) // WIP
-{
-	%msg = "\c5(Requires at least \c33\c5 active players)";
-	messageClient(%client,'CAAchievementList',"\c3Winner!\c5 - Win a game against four players or more." SPC %msg);
-	messageClient(%client,'CAAchievementList',"\c3Cautious\c5 - Win a normal round by only touching bricks on the top layer." SPC %msg);
-	messageClient(%client,'CAAchievementList',"\c3Nerf This!\c5 - Die from an explosive brick.");
-	messageClient(%client,'CAAchievementList',"\c3Mario\c5 - Jump on someone's head!");
-	messageClient(%client,'CAAchievementList',"\c3Peace Treaty\c5 - Drop your weapon in a sword or broom round.");
-	messageClient(%client,'CAAchievementList',"\c3WEEEEEEEEE!\c5 - Survive an explosive brick.");
-	messageClient(%client,'',"\c3Press Page Up and Page Down to scroll in chat.");
-
-}
-
-function awardRoundEndAchievements(%client)
-{
-	%blid = %client.bl_id;
-	if($CA::Score[%blid] >= 1 && $CA::ClientCount > 2 && !$CA::AchievementWinner[%blid])
-	{
-		messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Winner!\c5 achievement!");
-		$CA::AchievementWinner[%blid] = 1;
-	}
-	
-	switch($CA::RoundModifierID)
-	{
-		case 1: //Pushbrooms
-			if($CA::ClientCount > 3 && !$CA::AchievementBrooms[%blid])
-			{
-				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Broom Fighter\c5 achievement!");
-				$CA::AchievementBrooms[%blid] = 1;
-			}
-			return;
-		case 2: //Huge
-			if($CA::ClientCount > 3 && !$CA::AchievementGiant[%blid])
-			{
-				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Giant\c5 achievement!");
-				$CA::AchievementGiant[%blid] = 1;
-			}
-			return;
-		case 3: //Auto crumble
-			if($CA::ClientCount > 3 && !$CA::AchievementUnstable[%blid])
-			{
-				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Askew\c5 achievement!");
-				$CA::AchievementUnstable[%blid] = 1;
-			}
-			return;
-		case 4: //Small playerscale
-			if($CA::ClientCount > 3 && !$CA::AchievementTiny[%blid])
-			{
-				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Ant\c5 achievement!");
-				$CA::AchievementTiny[%blid] = 1;
-			}
-			return;
-		case 5: //Horses
-			if($CA::ClientCount > 3 && !$CA::AchievementHorse[%blid])
-			{
-				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Horse\c5 achievement!");
-				$CA::AchievementHorse[%blid] = 1;
-			}
-			return;
-		case 6: //Swords
-			if($CA::ClientCount > 3 && !$CA::AchievementSwords[%blid])
-			{
-				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Sword Fighter\c5 achievement!");
-				$CA::AchievementSwords[%blid] = 1;
-			}
-			return;
-		case 7: //Slow
-			if($CA::ClientCount > 3 && !$CA::AchievementSlow[%blid])
-			{
-				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Snail\c5 achievement!");
-				$CA::AchievementSlow[%blid] = 1;
-			}
-			return;
-		case 8: //Fast
-			if($CA::ClientCount > 3 && !$CA::AchievementFast[%blid])
-			{
-				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Hedgehog\c5 achievement!");
-				$CA::AchievementFast[%blid] = 1;
-			}
-			return;
-		case 9: //Low gravity
-			if($CA::ClientCount > 3 && !$CA::AchievementSpace[%blid])
-			{
-				//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Astronaut\c5 achievement!");
-				$CA::AchievementSpace[%blid] = 1;
-			}
-			return;
-	}
-	
-	if(isObject(%player) && !%player.achievementNoCautious && $CA::ClientCount > 2 && !$CA::AchievementCautious[%blid])
-	{
-		messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Cautious\c5 achievement!");
-		$CA::AchievementCautious[%blid] = 1;
-	}
-	
-	if($CA::ClientCount > 3 && !$CA::AchievementNormal[%blid])
-	{
-		//messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Vanilla\c5 achievement!");
-		$CA::AchievementNormal[%blid] = 1;
-	}
-}
-
 function serverCmdHelp(%client)
 {
 	messageClient(%client,'listServerCmd',"\c3/achievements\c6: View all achievements");
@@ -701,20 +597,10 @@ package CrumblingArenaPackage
 	{		
 		if(%this && !%player.client.noCrumble)
 		{
-			if(%this.colorID+1 != $CA::Layers)
-				%player.achievementNoCautious = 1;
-
-			if(%player.achievementExplosion)
-			{
-				%player.achievementExplosion = 0; // If the player is touching bricks, they have not died from an explosion.
-				if(!$CA::AchievementExplosionSurvive[%player.client.bl_id])
-				{
-					messageAll('',"\c3" @ %player.client.name @ "\c5 has earned the \c3WEEEEEEEEE!\c5 achievement!");
-					$CA::AchievementExplosionSurvive[%player.client.bl_id] = 1;
-				}
-			}
-			
-			%this.destroyBrick(0,"brickStep0",%player);
+			// If they touch a brick...
+			%player.achievementExplosion = 0; // ...they haven't died from an explosion, no achievement
+			%player.achievementMario2 = 0; // ...they aren't jumping on heads, no achievement
+			%this.destroyBrick(0,"brickStep0",%player); // Finally, destroy the brick.
 		}
 	}
 
@@ -738,7 +624,6 @@ package CrumblingArenaPackage
 		//CAGravityZone.deactivate();
 
 		export("$CA::Score*","config/server/CrumbleArena/scores.cs");
-		export("$CA::Achievement*","config/server/CrumbleArena/achievements.cs");
 
 		parent::reset(%a,%b,%c,%d,%e,%f,%g);
 	}
@@ -825,8 +710,9 @@ package CrumblingArenaPackage
 	function projectileData::radiusDamage(%projectile,%a,%b,%c,%d,%e,%f,%g) // Achievement: Explosive brick
 	{
 		%client = %b.client;
-		if(%projectile.explosion $= "rocketExplosion" && !$CA::AchievementExplosion[%client.bl_id])
-			%client.player.achievementExplosion = 1; // Mark the player to receive the explosion achievement if they die. If they survive (aka they touch a brick)
+		
+		if(%projectile.explosion $= "rocketExplosion")
+			%client.player.achievementExplosion = 1; // Mark the player to receive the explosion achievement if they die.
 		
 		Parent::radiusDamage(%projectile,%a,%b,%c,%d,%e,%f,%g);
 	}
@@ -933,6 +819,8 @@ package CrumblingArenaPackage
 			
 			if(%obj.debugHUD)
 				%hudPrefix = "bd:" SPC %obj.player.bricksDestroyed SPC "cc: " @ $CA::ClientCount @ "<BR>";
+			else
+				%hudPrefix = "";
 			
 			if(%obj.HUD && %obj.hasSpawnedOnce) // IMPORTANT: Never send bottom prints to clients that are loading. You will break the download system.
 				commandToClient(%obj,'bottomPrint',%hudPrefix @ "<font:impact:45>\c3" @ $CA::TimeDisplay @ "<just:right>\c3" @ $CA::BrickCount SPC "bricks left",0,1); // Exclude the music brick
@@ -953,13 +841,16 @@ package CrumblingArenaPackage
 		
 		%force = mFloor(%force);
 		
-		if(getSimTime() - $CA::Start > $CA::GameDelay && !$CA::AchievementStomp[%obj.client.bl_id])
+		if(getSimTime() - $CA::Start > $CA::GameDelay)
 		{
-			messageAll('',"\c3" @ %obj.client.name @ "\c5 has earned the \c3Mario\c5 achievement!");
-			$CA::AchievementStomp[%obj.client.bl_id] = 1;
+			awardAchievement(%obj.client,1); // Award "Mario" achievement
+			
+			if(%obj.achievementMario2 && %obj.achievementMarioPlayer !$= %col.getID()) // If they step on a different player's head without touching a brick, award the "Mario II" achievement.
+				awardAchievement(%obj.client,2);
+				
+			%obj.achievementMario2 = 1;	
+			%obj.achievementMarioPlayer = %col.getID();
 		}
-		
-		//TODO: Implement Mario II
 		
 		//centerprint(%col.client, "<bitmap:base/client/ui/ci/crater> \c0Stomp \c6from \c0" @ %obj.client.name @ " \c6at \c0" @ %force @ " \c6ft/sec. " @ %vec, 4);
 		//centerprint(%obj.client, "<bitmap:base/client/ui/ci/crater> \c0Stomp \c6to \c0" @ %col.client.name @ " \c6at \c0" @ %force @ " \c6ft/sec. " @ %vec, 4);
@@ -971,10 +862,9 @@ package CrumblingArenaPackage
 		
 		if($CA::RoundModifierID == 6 || $CA::RoundModifierID == 1)
 		{
-			if(getSimTime() - $CA::Start > $CA::GameDelay && $CA::ClientCount > 1 && !$CA::AchievementDrop[%client.bl_id])
+			if(getSimTime() - $CA::Start > $CA::GameDelay && $CA::ClientCount > 1)
 			{
-				messageAll('',"\c3" @ %client.name @ "\c5 has earned the \c3Peace Treaty\c5 achievement!");
-				$CA::AchievementDrop[%client.bl_id] = 1;
+				// Peace Treaty achievement disabled for now
 			}
 		}
 	}
@@ -990,11 +880,8 @@ package CrumblingArenaPackage
 		//commandToClient(%player.client,'centerPrint',"You died!<br>Bricks destroyed: " @ %player.bricksDestroyed);
 		messageClient(%player.client,'',"\You died!<br>Bricks destroyed: \c6" @ %player.bricksDestroyed);
 		
-		if(%player.achievementExplosion && !$CA::AchievementExplosion[%player.client.bl_id]) // If a player died after getting hit by an explosion, give them the achievement.
-		{
-			messageAll('',"\c3" @ %player.client.name @ "\c5 has earned the \c3Nerf This!\c5 achievement!");
-			$CA::AchievementExplosion[%player.client.bl_id] = 1;
-		}
+		if(%player.achievementExplosion) // If a player died after getting hit by an explosion, give them the achievement.
+			awardAchievement(%player.client,0);
 		
 		Parent::onDisabled(%damage,%player,%a);
 		//talk("rip" SPC %player.client.name);
