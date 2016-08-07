@@ -522,13 +522,13 @@ function serverCmdStats(%client) // WIP
 	
 	for(%i = 0; %i <= getWordCount(%achievements)-1; %i++) 
 		if(getWord(%achievements,%i) == 1) 
-			%achievements++;
+			%achievementCount++;
 		
 	if(!%achievements)
 		%achievements = 0;
 	
 	messageClient(%client,'CAStats',"\c5You have won \c3" @ %wins @ "\c5 times. You have died \c3" @ %loss @ "\c5 times. You have destroyed a total of \c3" @ %bricks @ "\c5 bricks!");
-	messageClient(%client,'CAStats',"\c5You have unlocked \c3" @ %achievements @ "/" @ $CA::AchievementCount @ "\c5 achievements so far! Type \c3/achievements\c5 for more info.");
+	messageClient(%client,'CAStats',"\c5You have unlocked \c3" @ %achievementCount @ "/" @ $CA::AchievementCount+1 @ "\c5 achievements so far! Type \c3/achievements\c5 for more info.");
 }
 
 function serverCmdHelp(%client)
@@ -898,10 +898,14 @@ package CrumblingArenaPackage
 	
 	function GameConnection::onDeath(%target,%projectile,%client,%d,%e,%f)
 	{
-		$CA::ScoreSwordKills[%client.bl_id]++;
-		%client.player.swordKills++;
-		if(%client.player.swordKills == 3)
-			awardAchievement(%client,4); // Award the "Aggressive" achievement
+		if(%target != %client)
+		{
+			//echo("swordkill" SPC %client SPC ">" SPC %target);
+			$CA::ScoreSwordKills[%client.bl_id]++;
+			%client.player.swordKills++;
+			if(%client.player.swordKills == 3)
+				awardAchievement(%client,4); // Award the "Aggressive" achievement
+		}
 		
 		Parent::onDeath(%target,%projectile,%client,%d,%e,%f); 
 	}
