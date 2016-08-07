@@ -509,6 +509,7 @@ function serverCmdStats(%client) // WIP
 	%wins = $CA::Score[%blid];
 	%loss = $CA::ScoreLoss[%blid];
 	%bricks = $CA::ScoreDestroyed[%blid];
+	%achievements = $CA::ScoreAchievements[%blid];
 	
 	if(!%wins)
 		%wins = 0;
@@ -519,7 +520,15 @@ function serverCmdStats(%client) // WIP
 	if(!%bricks)
 		%bricks = 0;
 	
+	for(%i = 0; %i <= getWordCount(%achievements)-1; %i++) 
+		if(getWord(%achievements,%i) == 1) 
+			%achievements++;
+		
+	if(!%achievements)
+		%achievements = 0;
+	
 	messageClient(%client,'CAStats',"\c5You have won \c3" @ %wins @ "\c5 times. You have died \c3" @ %loss @ "\c5 times. You have destroyed a total of \c3" @ %bricks @ "\c5 bricks!");
+	messageClient(%client,'CAStats',"\c5You have unlocked \c3" @ %achievements @ "/" @ $CA::AchievementCount @ "\c5 achievements so far! Type \c3/achievements\c5 for more info.");
 }
 
 function serverCmdHelp(%client)
