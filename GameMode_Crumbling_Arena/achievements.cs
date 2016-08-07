@@ -2,7 +2,7 @@
 
 // 1. Achievement List
 
-$CA::AchievementCount = 2;
+$CA::AchievementCount = 3;
 
 $CA::AchievementName[0] = "Nerf This!";
 $CA::AchievementDesc[0] = "Die from an explosive brick.";
@@ -12,6 +12,9 @@ $CA::AchievementDesc[1] = "Jump on someone's head!";
 
 $CA::AchievementName[2] = "Mario II";
 $CA::AchievementDesc[2] = "Jump on two heads in a row!";
+
+$CA::AchievementName[3] = "Peace Treaty";
+$CA::AchievementDesc[3] = "Drop your weapon off the arena in a sword or broom round.";
 
 // 1. Achievement Functions
 
@@ -26,6 +29,9 @@ function serverCmdAchievements(%client)
 
 function awardAchievement(%client,%id)
 {
+	if(!isObject(%client) || $CA::GameEnded) // Don't award an achievement if the client is missing or the game has ended.
+		return;
+	
 	%aName = $CA::AchievementName[%id];
 	%aDesc = $CA::AchievementDesc[%id];
 	
@@ -47,8 +53,17 @@ function awardAchievement(%client,%id)
 }
 
 // Crumbling Arena: Award achievements for the end of a round.
-function awardRoundEndAchievements(%client)
+function awardRoundEndAchievements(%client,%win)
 {
+	%id = $CA::RoundModifierID;
 	%blid = %client.bl_id;
-	// None yet
+}
+
+function CA_checkItemVelocity(%item)
+{
+	if(!isObject(%item))
+		return;
+	
+	if(getWord(%item.getVelocity(),2) < -20) 
+		awardAchievement(findClientByBL_ID(%item.bl_id),3);
 }

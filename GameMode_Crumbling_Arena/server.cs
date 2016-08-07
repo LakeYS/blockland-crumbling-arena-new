@@ -624,7 +624,7 @@ package CrumblingArenaPackage
 		//CAGravityZone.deactivate();
 
 		export("$CA::Score*","config/server/CrumbleArena/scores.cs");
-
+		
 		parent::reset(%a,%b,%c,%d,%e,%f,%g);
 	}
 
@@ -886,6 +886,17 @@ package CrumblingArenaPackage
 		Parent::onDisabled(%damage,%player,%a);
 		//talk("rip" SPC %player.client.name);
 	}
+	
+	function GameConnection::onDeath(%target,%projectile,%client,%d,%e,%f)
+	{
+		Parent::onDeath(%target,%projectile,%client,%d,%e,%f); 
+	}
+	
+	function ItemData::onAdd(%a,%item) // When an item is dropped, we'll wait 3 seconds and check if it is falling. If so, we award the "Peace Treaty" achievement. See achievements.cs for the CA_checkItemVelocity function.
+	{
+		schedule(3000,0,CA_checkItemVelocity,%item);
+		Parent::onAdd(%a,%item);
+	} 
 };
 activatePackage(CrumblingArenaPackage);
 CALoop();
