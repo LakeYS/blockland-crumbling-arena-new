@@ -827,7 +827,7 @@ package CrumblingArenaPackage
 			}
 			
 			if(%obj.debugHUD)
-				%hudPrefix = "bd:" SPC %obj.player.bricksDestroyed SPC "cc: " @ $CA::ClientCount @ "<BR>";
+				%hudPrefix = "bd:" SPC %obj.player.bricksDestroyed SPC "cc: " @ $CA::ClientCount @ " sk:" SPC %obj.player.swordKills @ "<BR>";
 			else
 				%hudPrefix = "";
 			
@@ -898,6 +898,11 @@ package CrumblingArenaPackage
 	
 	function GameConnection::onDeath(%target,%projectile,%client,%d,%e,%f)
 	{
+		$CA::ScoreSwordKills[%client.bl_id]++;
+		%client.player.swordKills++;
+		if(%client.player.swordKills == 3)
+			awardAchievement(%client,4); // Award the "Aggressive" achievement
+		
 		Parent::onDeath(%target,%projectile,%client,%d,%e,%f); 
 	}
 	

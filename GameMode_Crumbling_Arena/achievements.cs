@@ -2,7 +2,7 @@
 
 // 1. Achievement List
 
-$CA::AchievementCount = 3;
+$CA::AchievementCount = 4;
 
 $CA::AchievementName[0] = "Nerf This!";
 $CA::AchievementDesc[0] = "Die from an explosive brick.";
@@ -15,6 +15,9 @@ $CA::AchievementDesc[2] = "Jump on two heads in a row!";
 
 $CA::AchievementName[3] = "Peace Treaty";
 $CA::AchievementDesc[3] = "Drop your weapon off the arena in a sword or broom round.";
+
+$CA::AchievementName[4] = "Aggressive";
+$CA::AchievementDesc[4] = "Kill three or more opponents in a single sword fight round.";
 
 // 1. Achievement Functions
 
