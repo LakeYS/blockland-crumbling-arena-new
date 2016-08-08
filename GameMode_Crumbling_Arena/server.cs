@@ -766,6 +766,16 @@ package CrumblingArenaPackage
 	{
 		//commandToClient(%player.client,'centerPrint',"You died!<br>Bricks destroyed: " @ %player.bricksDestroyed);
 		
+		%client = %player.client;
+		
+		if($CA::Time <= 9 && !%client.noIdle)
+			$CA::ClientCount--; // If a player dies within the first ten seconds, exclude them from the "unstable" timer.
+		else if(!$CA::SoloRoundStarted && !$CA::GameEnded) // Don't count the death if it's a solo round or the game is over.
+		{
+			$CA::ScoreDestroyed[%client.bl_id] = $CA::ScoreDestroyed[%client.bl_id]+%client.player.bricksDestroyed; // Add bricks destroyed to their stats
+			$CA::ScoreLoss[%client.bl_id]++; // Counts as a loss
+		}
+		
 		if(!%player.bricksDestroyed)
 			%player.bricksDestroyed = 0;
 		
@@ -787,13 +797,6 @@ package CrumblingArenaPackage
 			%client.player.swordKills++;
 			if(%client.player.swordKills == 3)
 				awardAchievement(%client,4); // Award the "Aggressive" achievement
-		}
-		else if($CA::Time <= 9 && !%obj.player.noIdle)
-			$CA::ClientCount--; // If a player dies within the first ten seconds, exclude them from the "unstable" timer.
-		else
-		{
-			$CA::ScoreDestroyed[%obj.bl_id] = $CA::ScoreDestroyed[%obj.bl_id]+%obj.player.bricksDestroyed; // Add bricks destroyed to their stats
-			$CA::ScoreLoss[%obj.bl_id]++; // Counts as a loss
 		}
 		
 		Parent::onDeath(%target,%projectile,%client,%d,%e,%f); 
