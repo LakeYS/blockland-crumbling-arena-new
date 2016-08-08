@@ -1,3 +1,4 @@
+exec("./arenaGenerator.cs");
 exec("./achievements.cs");
 
 playerNoJet.minImpactSpeed = 4;
@@ -166,129 +167,6 @@ function getBrick(%brick)
 	}
 }
 
-function getBrickSize(%brick)
-{
-	return %brick.brickSizeX/2 SPC %brick.brickSizeY/2 SPC %brick.brickSizeZ/5;
-}
-
-function buildArena()
-{
-	echo("SERVER: Building arena...");
-
-	%arenaSize = 15 + ClientGroup.getCount();
-	if(%arenaSize > 24)
-		%arenaSize = 24;
-	
-	%arenaHeight = getRandom(2,9);
-	$CA::Layers = %arenaHeight;
-	
-	$CA::BrickDatablock = getBrick(getRandom(0,9));
-	%brickSize = getBrickSize($CA::BrickDatablock);
-
-	//may help with the glitched bricks
-	%arenaOffsetX = getRandom(-700,700);
-	%arenaOffsetY = getRandom(-700,700);
-
-	echo("SIZE=" @ %arenaSize SPC "HEIGHT=" @ %arenaHeight SPC "BRICK=" @ $CA::BrickDatablock);
-	
-	//talk(%arenaSize*getWord(%brickSize,1)*2);
-	
-	$CA::ArenaSizeDisplay = %arenaSize @ "x" @ %arenaSize @ "x" @ %arenaHeight @ %f;
-	$CA::ArenaBrick = $CA::BrickDatablock.uiName;
-	$CA::ArenaIcon = $CA::BrickDatablock.iconName;
-
-	for(%z=0;%z<%arenaHeight;%z++)
-	{
-		%positionZ = 200 + getWord(%brickSize,2)*%z;
-
-		for(%x=0;%x<%arenaSize;%x++)
-		{
-			%positionX = %arenaOffsetX + (getWord(%brickSize,0)*%x);
-
-			for(%y=0;%y<%arenaSize;%y++)
-			{
-				%positionY = %arenaOffsetY + (getWord(%brickSize,1)*%y);
-				%brick = new fxDTSBrick()
-				{
-					angleID = 0;
-					client = 0;
-					colorFxID = 0;
-					colorID = %z;
-					dataBlock = $CA::BrickDatablock;
-					isBasePlate = 0;
-					isPlanted = 1;
-					position = %positionX SPC %positionY SPC %positionZ;
-					printID = 0;
-					rotation = "0 0 0";
-					scale = "1 1 1";
-					shapeFxID = 0;
-					stackBL_ID = "-1";
-					numEvents = 1;
-				};
-				
-				//if(%z == %arenaHeight-1)
-				//{
-				//	if(%y == %arenaSize-1 || %y == 0 || %x == %arenaSize-1 || %x == 0)
-				//		%brick.setColor(%arenaHeight-2);
-				//}
-				
-				if(getRandom(1,2000) == 1) //
-				{
-					%brick.setEmitter("AdminWandEmitterB");
-					%brick.setColorFX(5);
-					%brick.isBombBrick = 1;
-				}
-				
-				%brick.plant();
-				%brick.setTrusted(1);
-				BrickGroup_888888.add(%brick);
-				%brick.playSound(brickPlantSound);
-
-				if(!%firstBrick)
-					%firstBrick = %brick;
-				
-			}
-		}
-	}
-
-	if(!%lastBrick)
-		%lastBrick = %brick;
-
-	%middle = (getWord(%firstBrick.getPosition(),0) + getWord(%lastBrick.getPosition(),0))/2 SPC (getWord(%firstBrick.getPosition(),1) + getWord(%lastBrick.getPosition(),1))/2 SPC %positionZ + 50;
-	
-	if($CA::Music)
-	{
-		%musicBrick = new fxDTSBrick(MusicBrick)
-		{
-			angleID = 0;
-			client = 0;
-			colorFxID = 0;
-			colorID = 0;
-			dataBlock = "brick15xMusicData";
-			isBasePlate = 0;
-			isPlanted = 1;
-			position = %middle;
-			printID = 0;
-			rotation = "0 0 0";
-			scale = "1 1 1";
-			shapeFxID = 0;
-			stackBL_ID = "-1";
-			numEvents = 1;
-		};
-		%musicBrick.plant();
-		%musicBrick.setTrusted(1);
-		BrickGroup_888888.add(%musicBrick);
-		%musicBrick.playSound(brickPlantSound);
-		%musicBrick.setMusic(MusicData.getObject(getRandom(0,MusicData.getCount()-1)).music.getID());
-		%musicBrick.setRendering(0);
-		%musicBrick.setColliding(0);
-	}
-
-	$CA::GameDelay = 7000 + (clientGroup.getCount() * 450);
-	
-	$CA::Loop::MakeSpawn = schedule(33,0,makeNewSpawn,%positionX,%positionY,%positionZ + 20,%firstBrick,%lastBrick);
-}
-
 function makeNewSpawn(%x,%y,%z,%b1,%b2)
 {
 	%firstPos = %b1.getPosition();
@@ -297,8 +175,8 @@ function makeNewSpawn(%x,%y,%z,%b1,%b2)
 	for(%i=0;%i<clientGroup.getCount();%i++)
 	{
 		%obj = ClientGroup.getObject(%i);
-
-		if(%obj.player)
+		
+		if(%obj.player.minigame.owner == 0) // Make sure they're in the minigame and not loading. (Just in case, we'll also make sure they're actually in the right minigame)
 		{
 			//%obj.player.delete();
 			%obj.spawnPlayer();
@@ -444,28 +322,32 @@ function doRoundModifier(%which)
 			}
 			centerPrintAll("<font:impact:60>\c3Slowpokes!",5);
 		case 8: //Fast
-		for(%i=0;%i<clientGroup.getCount();%i++)
-		{
-			%obj = clientGroup.getObject(%i);
-			
-			if(isObject(%obj.player))
+			for(%i=0;%i<clientGroup.getCount();%i++)
 			{
-				%d = %obj.player.dataBlock;
+				%obj = clientGroup.getObject(%i);
 				
-				%obj.player.setMaxForwardSpeed(%d.maxForwardSpeed*1.8);
-				%obj.player.setMaxBackwardSpeed(%d.maxBackwardSpeed*1.8);
-				%obj.player.setMaxSideSpeed(%d.maxSideSpeed*1.8);
-				
-				%obj.player.setMaxCrouchForwardSpeed(%d.maxForwardCrouchSpeed*1.8);
-				%obj.player.setMaxCrouchBackwardSpeed(%d.maxBackwardCrouchSpeed*1.8);
-				%obj.player.setMaxCrouchSideSpeed(%d.maxSideCrouchSpeed*1.8);
+				if(isObject(%obj.player))
+				{
+					%d = %obj.player.dataBlock;
+					
+					%obj.player.setMaxForwardSpeed(%d.maxForwardSpeed*1.8);
+					%obj.player.setMaxBackwardSpeed(%d.maxBackwardSpeed*1.8);
+					%obj.player.setMaxSideSpeed(%d.maxSideSpeed*1.8);
+					
+					%obj.player.setMaxCrouchForwardSpeed(%d.maxForwardCrouchSpeed*1.8);
+					%obj.player.setMaxCrouchBackwardSpeed(%d.maxBackwardCrouchSpeed*1.8);
+					%obj.player.setMaxCrouchSideSpeed(%d.maxSideCrouchSpeed*1.8);
+				}
 			}
-		}
 		centerPrintAll("<font:impact:60>\c3Gotta go fast!",5);
 		case 9: //Low gravity
 			CAGravityZone.gravityMod = 0.6;
-			CAGravityZone.sendUpdate(); // Fixed?
+			CAGravityZone.sendUpdate();
 			centerPrintAll("<font:impact:60>\c3SPACE!",5);
+		//case 10: //Spleef
+		//	// We only need the print
+		//	centerPrintAll("<font:impact:60>\c3Spleef Round!<br><font:impact:30>\c3Click the bricks!",5);
+		
 	}
 }
 
@@ -612,12 +494,18 @@ package CrumblingArenaPackage
 			%this.destroyBrick(0,"brickStep0",%player); // Finally, destroy the brick.
 		}
 	}
+	
+	//function fxDTSBrick::onActivate(%brick,%player,%a,%b)
+	//{
+	//	Parent::onActivate(%brick,%client,%a,%b);
+	//}
 
-	function MinigameSO::reset(%a,%b,%c,%d,%e,%f,%g)
+	function MinigameSO::reset(%minigame,%b,%c,%d,%e,%f,%g)
 	{
 		BrickGroup_888888.deleteAll();
 		buildArena();
 
+		$CA::Minigame = %minigame;
 		$CA::FallingTiles = 0;
 		$CA::FTWarn = 0;
 		$CA::Start = getSimTime();
@@ -634,37 +522,49 @@ package CrumblingArenaPackage
 
 		export("$CA::Score*","config/server/CrumbleArena/scores.cs");
 		
-		parent::reset(%a,%b,%c,%d,%e,%f,%g);
+		parent::reset(%minigame,%b,%c,%d,%e,%f,%g);
+		
+		// This is special handling for if there are no clients.
+		if(clientGroup.getCount() == 0)
+		{
+			// We're going to cancel the minigame's "reset" timer. This is so we don't keep rebuilding arenas every 5 minutes for an empty server. 
+			$CA::Paused = 1;
+			cancel(%minigame.timeLimitSchedule);
+		}
 	}
 
-	function MinigameSO::checkLastManStanding(%a,%b)
+	function MinigameSO::checkLastManStanding(%minigame,%b)
 	{
-		if($CA::ClientCount == 1 && clientGroup.getCount() > 1 && !$CA::SoloRoundStarted) // In case only one player is active
+		// More special handling for empty servers...
+		if($CA::Paused) // If the schedule isn't pending, it's because we cancelled it earlier. The last man standing check is triggering because a new player spawned.
 		{
-			for(%i=0;%i<clientGroup.getCount();%i++) // Probably redundant now that $CA::SoloRoundStarted is implemented
-			{
-				if(clientGroup.getObject(%i).player)
-				{
-					%num++;
-					%client = clientGroup.getObject(%i);
-				}
-			}
+			// The point of all this is so we can use the existing arena instead of making a new one when someone joins.
 			
-			if(!%num) // Probably redundant now that $CA::SoloRoundStarted is implemented
-			{
-				cancel($CA::SoloRoundMsgSchedule);
-				parent::checkLastManStanding(%a,%b);
-			}
-			else
-			{
-				$CA::SoloRoundStarted = 1; // This is to make sure we don't prevent the next last man standing check (For example, if another player joins)
-				$CA::SoloRoundMsgSchedule = schedule(1000,0,messageAll,'',"\c5Solo round started because everyone is dead.");
-			}
+			%minigame.lastResetTime = getSimTime(); // We'll tell the minigame that it just reset so we don't actually have to reset it.
+			%minigame.timeLimitTick(); // Now we restart the tick we cancelled earlier.
+			
+			$CA::Paused = 0;
+			$CA::Start = getSimTime();
+			$CA::GameDelay = 7000 + (clientGroup.getCount() * 450);
+			$CA::Loop::MakeSpawn = schedule(33,0,makeNewSpawn,$CA::MS1,$CA::MS2,$CA::MS3,$CA::MS4,$CA::MS5); // Now, we'll start the game instantly! 
+			
+			return; // Cancel the actual last man standing check so it doesn't reset the minigame.
+			// With this, the player can join and begin immediately rather than waiting for the arena to regenerate.
+		}
+		
+		// Now we'll move on to the actual last man standing stuff.
+		
+		// The game-mode uses regular last man standing but we're going to apply a few "hacks" to make it work better for the game-mode.
+		if($CA::ClientCount == 1 && clientGroup.getCount() > 1 && !$CA::SoloRoundStarted) // If only one player is active...
+		{
+			// If only one active player is alive, we'll start a solo round.
+			$CA::SoloRoundStarted = 1; // This is to make sure we don't prevent the next last man standing check (For example, if another player joins)
+			$CA::SoloRoundMsgSchedule = schedule(1000,0,messageAll,'',"\c5Solo round started because everyone is dead.");
 		}
 		else
 		{
-			cancel($CA::SoloRoundMsgSchedule);
-			parent::checkLastManStanding(%a,%b);
+			cancel($CA::SoloRoundMsgSchedule); // Everyone died, don't show the "solo round started" message.
+			parent::checkLastManStanding(%minigame,%b);
 			
 			for(%i=0;%i<clientGroup.getCount();%i++)
 			{
@@ -745,13 +645,13 @@ package CrumblingArenaPackage
 		cancel($CALoop);
 		
 		%crumbleStart = $CA::GameDelay+28000+$CA::ClientCount*17000;
-		if(getSimTime() - $CA::Start > %crumbleStart-2000 && !$CA::FTWarn && !$CA::GameEnded) // Original: 145000
+		if(getSimTime() - $CA::Start > %crumbleStart-2000 && !$CA::FTWarn && !$CA::GameEnded && !$CA::Paused) // Original: 145000
 		{
 			$CA::FTWarn = 1;
 			messageAll('',"\c5Uh oh, the arena is getting unstable!");
 		}
 
-		if(getSimTime() - $CA::Start > %crumbleStart && !$CA::GameEnded || $CA::Crumble && !$CA::GameEnded)
+		if(getSimTime() - $CA::Start > %crumbleStart && !$CA::GameEnded && !$CA::Paused || $CA::Crumble && !$CA::GameEnded)
 		{
 			$CA::Delay = 280;
 			if(brickGroup_888888.getCount() >= 1) // In case there are no bricks left
@@ -804,16 +704,7 @@ package CrumblingArenaPackage
 		{
 			%obj = clientGroup.getObject(%i);
 			if(isObject(%obj.player) && getWord(%obj.player.getVelocity(),2) < -40)
-			{
-				if($CA::Time <= 9 && !%obj.player.noIdle)
-					$CA::ClientCount--; // If a player dies within the first ten seconds, exclude them from the "unstable" timer.
-				else
-				{
-					$CA::ScoreDestroyed[%obj.bl_id] = $CA::ScoreDestroyed[%obj.bl_id]+%obj.player.bricksDestroyed; // Add bricks destroyed to their stats
-					$CA::ScoreLoss[%obj.bl_id]++; // Counts as a loss
-				}
 				%obj.player.kill();
-			}
 			else if(isObject(%obj.player) && %lagCheck) // If player is alive and it has been at least one second since last check
 			{
 				if(%obj.player.getTransform() $= %obj.player.lastTransform && %obj.player.getVelocity() !$= "0 0 0")
@@ -865,19 +756,6 @@ package CrumblingArenaPackage
 		//centerprint(%obj.client, "<bitmap:base/client/ui/ci/crater> \c0Stomp \c6to \c0" @ %col.client.name @ " \c6at \c0" @ %force @ " \c6ft/sec. " @ %vec, 4);
 	}
 	
-	function serverCmdDropTool(%client,%a)
-	{
-		Parent::serverCmdDropTool(%client,%a);
-		
-		if($CA::RoundModifierID == 6 || $CA::RoundModifierID == 1)
-		{
-			if(getSimTime() - $CA::Start > $CA::GameDelay && $CA::ClientCount > 1)
-			{
-				// Peace Treaty achievement disabled for now
-			}
-		}
-	}
-	
 	function serverCmdUseTool(%client,%a)
 	{
 		Parent::serverCmdUseTool(%client,%a);
@@ -887,6 +765,10 @@ package CrumblingArenaPackage
 	function armor::onDisabled(%damage,%player,%a)
 	{
 		//commandToClient(%player.client,'centerPrint',"You died!<br>Bricks destroyed: " @ %player.bricksDestroyed);
+		
+		if(!%player.bricksDestroyed)
+			%player.bricksDestroyed = 0;
+		
 		messageClient(%player.client,'',"\You died!<br>Bricks destroyed: \c6" @ %player.bricksDestroyed);
 		
 		if(%player.achievementExplosion) // If a player died after getting hit by an explosion, give them the achievement.
@@ -906,6 +788,13 @@ package CrumblingArenaPackage
 			if(%client.player.swordKills == 3)
 				awardAchievement(%client,4); // Award the "Aggressive" achievement
 		}
+		else if($CA::Time <= 9 && !%obj.player.noIdle)
+			$CA::ClientCount--; // If a player dies within the first ten seconds, exclude them from the "unstable" timer.
+		else
+		{
+			$CA::ScoreDestroyed[%obj.bl_id] = $CA::ScoreDestroyed[%obj.bl_id]+%obj.player.bricksDestroyed; // Add bricks destroyed to their stats
+			$CA::ScoreLoss[%obj.bl_id]++; // Counts as a loss
+		}
 		
 		Parent::onDeath(%target,%projectile,%client,%d,%e,%f); 
 	}
@@ -914,7 +803,12 @@ package CrumblingArenaPackage
 	{
 		schedule(3000,0,CA_checkItemVelocity,%item);
 		Parent::onAdd(%a,%item);
-	} 
+	}
+	
+	function Player::activateStuff(%player)
+	{
+		Parent::ActivateStuff(%player);
+	}
 };
 activatePackage(CrumblingArenaPackage);
 CALoop();
