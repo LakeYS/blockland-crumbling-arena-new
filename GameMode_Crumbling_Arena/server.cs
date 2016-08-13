@@ -176,7 +176,7 @@ function makeNewSpawn(%x,%y,%z,%b1,%b2)
 	{
 		%obj = ClientGroup.getObject(%i);
 		
-		if(%obj.player.minigame.owner == 0) // Make sure they're in the minigame and not loading. (Just in case, we'll also make sure they're actually in the right minigame)
+		if($DefaultMinigame.isMember(%obj)) // Make sure they're in the minigame and not loading. (Just in case, we'll also make sure they're actually in the right minigame)
 		{
 			//%obj.player.delete();
 			%obj.spawnPlayer();
@@ -185,7 +185,8 @@ function makeNewSpawn(%x,%y,%z,%b1,%b2)
 			%obj.player.tool[0] = "";
 			messageClient(%obj,'MsgItemPickup','',0,0);
 
-			%obj.player.setTransform(getRandom(getWord(%firstPos,0)+15,getWord(%lastPos,0)-15) SPC getRandom(getWord(%firstPos,1)+15,getWord(%lastPos,1)-15) SPC %z);
+			%obj.player.spawnPoint = getRandom(getWord(%firstPos,0)+15,getWord(%lastPos,0)-15) SPC getRandom(getWord(%firstPos,1)+15,getWord(%lastPos,1)-15) SPC %z;
+			%obj.player.setTransform(%obj.player.spawnPoint);
 		}
 	}
 	
@@ -200,7 +201,7 @@ function makeNewSpawn(%x,%y,%z,%b1,%b2)
 	{
 		%client = clientGroup.getObject(%i);
 		
-		if(!%client.minigame) // If they aren't in the minigame, they're still loading.
+		if(!$DefaultMinigame.isMember(%client)) // If they aren't in the minigame, they're still loading.
 			$CA::ClientCount--;
 	}
 	
@@ -505,7 +506,6 @@ package CrumblingArenaPackage
 		BrickGroup_888888.deleteAll();
 		buildArena();
 
-		$CA::Minigame = %minigame;
 		$CA::FallingTiles = 0;
 		$CA::FTWarn = 0;
 		$CA::Start = getSimTime();
@@ -676,6 +676,9 @@ package CrumblingArenaPackage
 	{
 		cancel($CA::Loop::Velocity);
 		
+		if(getSimTime() - $CA::Start > $CA::GameDelay)
+			%gameStarted = 1;
+		
 		if(!$CA::GameEnded) // Freeze the timer when the game is over
 		{			
 			$CA::Time = ((getSimTime() - $CA::Start) - $CA::GameDelay)/1000;
@@ -694,7 +697,7 @@ package CrumblingArenaPackage
 		$CA::RoundStartMessage = 1;
 		
 		// This is to kill players that try to screw things up with the DLL. (Temporary until I can make it brick-based)
-		if(getSimTime()-$CA::LastLagCheck > 2800 && getSimTime() - $CA::Start > $CA::GameDelay && getSimTime() - $CA::Start > $CA::GameDelay)
+		if(getSimTime()-$CA::LastLagCheck > 2800 && %gameStarted)
 		{
 			$CA::LastLagCheck = getSimTime(); // Reset the timer
 			%lagCheck = 1;
@@ -703,8 +706,17 @@ package CrumblingArenaPackage
 		for(%i=0;%i<clientGroup.getCount();%i++)
 		{
 			%obj = clientGroup.getObject(%i);
+			
 			if(isObject(%obj.player) && getWord(%obj.player.getVelocity(),2) < -40)
-				%obj.player.kill();
+			{
+				if(%gameStarted) // Make sure the round is actually in progress.
+					%obj.player.kill(); 
+				else // If it isn't, return the player instead of killing them.
+				{
+					%obj.player.setVelocity("0 0 -1"); // Reset their velocity. If we don't do this, they get stuck in an infinite respawn loop.
+					%obj.player.setTransform(%obj.player.spawnPoint);
+				}
+			}
 			else if(isObject(%obj.player) && %lagCheck) // If player is alive and it has been at least one second since last check
 			{
 				if(%obj.player.getTransform() $= %obj.player.lastTransform && %obj.player.getVelocity() !$= "0 0 0")
@@ -768,7 +780,7 @@ package CrumblingArenaPackage
 		
 		%client = %player.client;
 		
-		if($CA::Time <= 9 && !%client.noIdle)
+		if($CA::Time <= 9 && !%client.player.noIdle)
 			$CA::ClientCount--; // If a player dies within the first ten seconds, exclude them from the "unstable" timer.
 		else if(!$CA::SoloRoundStarted && !$CA::GameEnded) // Don't count the death if it's a solo round or the game is over.
 		{

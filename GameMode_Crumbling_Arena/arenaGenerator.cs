@@ -39,46 +39,60 @@ function buildArena()
 
 			for(%y=0;%y<%arenaSize;%y++)
 			{
-				%positionY = %arenaOffsetY + (getWord(%brickSize,1)*%y);
-				%brick = new fxDTSBrick()
-				{
-					angleID = 0;
-					client = 0;
-					colorFxID = 0;
-					colorID = %z;
-					dataBlock = $CA::BrickDatablock;
-					isBasePlate = 0;
-					isPlanted = 1;
-					position = %positionX SPC %positionY SPC %positionZ;
-					printID = 0;
-					rotation = "0 0 0";
-					scale = "1 1 1";
-					shapeFxID = 0;
-					stackBL_ID = "-1";
-					numEvents = 1;
-				};
-				
-				//if(%z == %arenaHeight-1)
+				//if(%y >= %arenaSize/2 && %x >= %arenaSize/2 || %y <= (%arenaSize/2)-1 && %x <= (%arenaSize/2)-1) // Arena shape 1; Z shape. This will require some changes to the spawn function so players can spawn on either side without dying.
+				//if(%x >= %arenaSize-6 && %y >= %arenaSize-6 || %x <= 5 && %y <= 5 || %x >= %arenaSize-6 && %y <= 5 || %x <= 5 && %y >= %arenaSize-6) // Arena shape 2: plus shape
 				//{
-				//	if(%y == %arenaSize-1 || %y == 0 || %x == %arenaSize-1 || %x == 0)
-				//		%brick.setColor(%arenaHeight-2);
+				//	//Skip this brick	
 				//}
-				
-				if(getRandom(1,2000) == 1) //
-				{
-					%brick.setEmitter("AdminWandEmitterB");
-					%brick.setColorFX(5);
-					%brick.isBombBrick = 1;
-				}
-				
-				%brick.plant();
-				%brick.setTrusted(1);
-				BrickGroup_888888.add(%brick);
-				%brick.playSound(brickPlantSound);
+				//else
+				//{
+					%positionY = %arenaOffsetY + (getWord(%brickSize,1)*%y);
+					%brick = new fxDTSBrick()
+					{
+						angleID = 0;
+						client = 0;
+						colorFxID = 0;
+						colorID = %z;
+						dataBlock = $CA::BrickDatablock;
+						isBasePlate = 0;
+						isPlanted = 1;
+						position = %positionX SPC %positionY SPC %positionZ;
+						printID = 0;
+						rotation = "0 0 0";
+						scale = "1 1 1";
+						shapeFxID = 0;
+						stackBL_ID = "-1";
+						numEvents = 1;
+					};
+					
+					//if(%y >= mCeil(%arenaSize/2) && %x >= mCeil(%arenaSize/2) || %y <= mCeil((%arenaSize/2)-1) && %x <= mCeil((%arenaSize/2)-1))
+					//	%brick.setColor(%z+1);
+					
+					//// Uncomment to re-color edges of the arena
+					//if(%z == %arenaHeight-1)
+					//{
+					//	if(%y == %arenaSize-1 || %y == 0 || %x == %arenaSize-1 || %x == 0)
+					//		%brick.setColor(%arenaHeight-2);
+					//}
+					
+					// This is for testing purposes.
+					%brick.y = %y; %brick.x = %x; %brick.z = %z;
+					
+					if(getRandom(1,2000) == 1) //
+					{
+						%brick.setEmitter("AdminWandEmitterB");
+						%brick.setColorFX(5);
+						%brick.isBombBrick = 1;
+					}
+					
+					%brick.plant();
+					%brick.setTrusted(1);
+					BrickGroup_888888.add(%brick);
+					%brick.playSound(brickPlantSound);
 
-				if(!%firstBrick)
-					%firstBrick = %brick;
-				
+					if(!%firstBrick)
+						%firstBrick = %brick;
+				//}
 			}
 		}
 	}
