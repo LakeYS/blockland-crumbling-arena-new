@@ -61,6 +61,8 @@ $MiniGame::Points_KillPlayer 0
 $MiniGame::Points_KillSelf 0
 $MiniGame::Points_Die 0
 
+$MiniGame::BrickRespawnTime 3
+
 $MiniGame::UseSpawnBricks 1
 $MiniGame::FallingDamage 0
 $MiniGame::WeaponDamage 1

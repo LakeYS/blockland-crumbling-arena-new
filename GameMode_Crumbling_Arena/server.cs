@@ -430,7 +430,10 @@ function serverCmdCommands(%client)
 deactivatePackage("CrumblingArenaPackage");
 package CrumblingArenaPackage
 {
-	function fxDTSBrick::destroyBrick(%this,%force,%sound,%player)
+	// sound: The sound to play when the brick is destroyed.
+	// player: The player responsible for destroying the brick. If specified, this brick will be counted in their stats for the round.
+	// passthrough: set to 1 if brick is already being fake-killed (such as from an explosion)
+	function fxDTSBrick::destroyBrick(%this,%force,%sound,%player,%passthrough)
 	{	
 		if(%force)
 		{
@@ -456,13 +459,16 @@ package CrumblingArenaPackage
 			
 			$CA::BrickCount--;
 			%this.crumbled = 1;
-			//%this.schedule(125,fakeKillBrick);
 			%this.setEmitter();
 			%this.setLight();
 			%this.setColor(%this.colorID+10); // Make the brick transparent
+			
 			if(%sound !$= "")
 				%this.playSound(%sound);
-			%this.schedule(125,fakeKillBrick,"0 0 0",3);
+			
+			if(!%passthrough)
+				%this.schedule(125,fakeKillBrick,"0 0 0",3);
+			
 			%this.schedule(2500,disappear,-1);			
 			%this.schedule(3000,delete);
 		}
@@ -479,10 +485,10 @@ package CrumblingArenaPackage
 				%this.bombTriggered = 0;
 			}
 				
-			%this.destroyBrick();
+			%this.destroyBrick(0,0,0,0,1);
 		}
-		else
-			Parent::onFakeDeath(%this);
+		
+		Parent::onFakeDeath(%this);
 	}
 	
 	function fxDtsBrick::onPlayerTouch(%this,%player)
