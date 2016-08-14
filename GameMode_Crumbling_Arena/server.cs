@@ -612,6 +612,8 @@ package CrumblingArenaPackage
 	{
 		%client.HUD = 1;
 		return parent::autoAdminCheck(%client,%b,%c,%d,%e,%f,%g);
+		
+		//%client.score = $CA::Score[%client.bl_id]; // Untested. Does this work here? (Probably resets upon joining the minigame)
 	}
 	
 	function GameConnection::sendTrustFailureMessage() { } // To remove the "You cannot modify public bricks" message

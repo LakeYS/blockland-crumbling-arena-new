@@ -7,25 +7,35 @@ function buildArena()
 {
 	echo("SERVER: Building arena...");
 
-	%arenaSize = 15 + ClientGroup.getCount();
-	if(%arenaSize > 24)
-		%arenaSize = 24;
+	%arenaSizeX = 15 + ClientGroup.getCount();
+	%arenaSizeY = 15 + ClientGroup.getCount();
+	
+	if(%arenaSizeX > 24)
+	{
+		%arenaSizeX = 24;
+		%arenaSizeY = 24;
+	}
 	
 	%arenaHeight = getRandom(2,9);
 	$CA::Layers = %arenaHeight;
 	
 	$CA::BrickDatablock = getBrick(getRandom(0,9));
 	%brickSize = getBrickSize($CA::BrickDatablock);
+	
+	// This adjusts the arena size for different brick sizes.
+	%arenaSizeX *= $CA::BrickDatablock.brickSizeY/$CA::BrickDatablock.brickSizeX;
 
 	//may help with the glitched bricks
 	%arenaOffsetX = getRandom(-700,700);
 	%arenaOffsetY = getRandom(-700,700);
+	
+	%arenaShape = getRandom(0,5);
 
-	echo("SIZE=" @ %arenaSize SPC "HEIGHT=" @ %arenaHeight SPC "BRICK=" @ $CA::BrickDatablock);
+	echo("SIZE=" @ %arenaSizeX SPC "HEIGHT=" @ %arenaHeight SPC "SHAPE=" @ %arenaShape SPC "BRICK=" @ $CA::BrickDatablock);
 	
-	//talk(%arenaSize*getWord(%brickSize,1)*2);
+	//talk(%arenaSizeX*getWord(%brickSize,1)*2);
 	
-	$CA::ArenaSizeDisplay = %arenaSize @ "x" @ %arenaSize @ "x" @ %arenaHeight @ %f;
+	$CA::ArenaSizeDisplay = %arenaSizeX @ "x" @ %arenaSizeY @ "x" @ %arenaHeight @ %f;
 	$CA::ArenaBrick = $CA::BrickDatablock.uiName;
 	$CA::ArenaIcon = $CA::BrickDatablock.iconName;
 
@@ -33,19 +43,34 @@ function buildArena()
 	{
 		%positionZ = 200 + getWord(%brickSize,2)*%z;
 
-		for(%x=0;%x<%arenaSize;%x++)
+		for(%x=0;%x<%arenaSizeX;%x++)
 		{
 			%positionX = %arenaOffsetX + (getWord(%brickSize,0)*%x);
 
-			for(%y=0;%y<%arenaSize;%y++)
+			for(%y=0;%y<%arenaSizeY;%y++)
 			{
-				//if(%y >= %arenaSize/2 && %x >= %arenaSize/2 || %y <= (%arenaSize/2)-1 && %x <= (%arenaSize/2)-1) // Arena shape 1; Z shape. This will require some changes to the spawn function so players can spawn on either side without dying.
-				//if(%x >= %arenaSize-6 && %y >= %arenaSize-6 || %x <= 5 && %y <= 5 || %x >= %arenaSize-6 && %y <= 5 || %x <= 5 && %y >= %arenaSize-6) // Arena shape 2: plus shape
-				//{
-				//	//Skip this brick	
-				//}
-				//else
-				//{
+				%skipBrick = 0;
+				
+				//To do:
+				// Consider removal/improvement of Z shape
+				// Rectangle arenas
+				// Long arenas
+				// Circle arenas?
+				
+				%arenaShape = 4; // TEMPORARY
+				
+				switch(%arenaShape)
+				{
+					case 0:
+						if(%y >= mCeil(%arenaSizeY/2) && %x >= mCeil(%arenaSizeX/2) || %y <= mCeil((%arenaSizeY/2)-1) && %x <= mCeil((%arenaSizeX/2)-1)) // Arena shape 1; Z shape. This will require some changes to the spawn function so players can spawn on either side without dying.
+							%skipBrick = 1;
+					case 1:
+						if(%x >= %arenaSizeX-5 && %y >= %arenaSizeY-5 || %x <= 4 && %y <= 4 || %x >= %arenaSizeX-5 && %y <= 4 || %x <= 4 && %y >= %arenaSizeY-5) // Arena shape 2: plus shape A
+							%skipBrick = 1;
+				}
+				
+				if(!%skipBrick)
+				{
 					%positionY = %arenaOffsetY + (getWord(%brickSize,1)*%y);
 					%brick = new fxDTSBrick()
 					{
@@ -65,13 +90,13 @@ function buildArena()
 						numEvents = 1;
 					};
 					
-					//if(%y >= mCeil(%arenaSize/2) && %x >= mCeil(%arenaSize/2) || %y <= mCeil((%arenaSize/2)-1) && %x <= mCeil((%arenaSize/2)-1))
+					//if(%y >= mCeil(%arenaSizeX/2) && %x >= mCeil(%arenaSizeX/2) || %y <= mCeil((%arenaSizeX/2)-1) && %x <= mCeil((%arenaSizeX/2)-1))
 					//	%brick.setColor(%z+1);
 					
 					//// Uncomment to re-color edges of the arena
 					//if(%z == %arenaHeight-1)
 					//{
-					//	if(%y == %arenaSize-1 || %y == 0 || %x == %arenaSize-1 || %x == 0)
+					//	if(%y == %arenaSizeX-1 || %y == 0 || %x == %arenaSizeX-1 || %x == 0)
 					//		%brick.setColor(%arenaHeight-2);
 					//}
 					
@@ -92,7 +117,7 @@ function buildArena()
 
 					if(!%firstBrick)
 						%firstBrick = %brick;
-				//}
+				}
 			}
 		}
 	}
