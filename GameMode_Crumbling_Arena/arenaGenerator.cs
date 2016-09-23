@@ -25,22 +25,11 @@ function buildArena()
 	// This adjusts the arena size for different brick sizes.
 	%arenaSizeX *= $CA::BrickDatablock.brickSizeY/$CA::BrickDatablock.brickSizeX;
 
-	// May help with the glitched bricks
+	//may help with the glitched bricks
 	%arenaOffsetX = getRandom(-700,700);
 	%arenaOffsetY = getRandom(-700,700);
 	
-	// Pick a random shape
-	//%arenaShape = getRandom(0,5); 
-	%arenaShape = 6; //TEMPORARY
-	
-	switch(%arenaShape)
-	{
-		case 2: // Arena shape 3: rectangle.
-			if(getRandom(1,2))
-				%arenaSizeX /= 2;
-			else
-				%arenaSizeY /= 2;
-	}
+	%arenaShape = getRandom(0,5);
 
 	echo("SIZE=" @ %arenaSizeX SPC "HEIGHT=" @ %arenaHeight SPC "SHAPE=" @ %arenaShape SPC "BRICK=" @ $CA::BrickDatablock);
 	
@@ -63,20 +52,20 @@ function buildArena()
 				%skipBrick = 0;
 				
 				//To do:
-				// Rewrite spawning system for shaped arenas
 				// Consider removal/improvement of Z shape
 				// Rectangle arenas
 				// Long arenas
 				// Circle arenas?
-				// Correct arena size for smaller bricks
+				
+				%arenaShape = 4; // TEMPORARY
 				
 				switch(%arenaShape)
 				{
-					case 0: // Arena shape 1; Z shape. This will require some changes to the spawn function so players can spawn on either side without dying.
-						if(%y >= mCeil(%arenaSizeY/2) && %x >= mCeil(%arenaSizeX/2) || %y <= mCeil((%arenaSizeY/2)-1) && %x <= mCeil((%arenaSizeX/2)-1)) 
+					case 0:
+						if(%y >= mCeil(%arenaSizeY/2) && %x >= mCeil(%arenaSizeX/2) || %y <= mCeil((%arenaSizeY/2)-1) && %x <= mCeil((%arenaSizeX/2)-1)) // Arena shape 1; Z shape. This will require some changes to the spawn function so players can spawn on either side without dying.
 							%skipBrick = 1;
-					case 1: // Arena shape 2: plus shape A
-						if(%x >= %arenaSizeX-5 && %y >= %arenaSizeY-5 || %x <= 4 && %y <= 4 || %x >= %arenaSizeX-5 && %y <= 4 || %x <= 4 && %y >= %arenaSizeY-5) 
+					case 1:
+						if(%x >= %arenaSizeX-5 && %y >= %arenaSizeY-5 || %x <= 4 && %y <= 4 || %x >= %arenaSizeX-5 && %y <= 4 || %x <= 4 && %y >= %arenaSizeY-5) // Arena shape 2: plus shape A
 							%skipBrick = 1;
 				}
 				
