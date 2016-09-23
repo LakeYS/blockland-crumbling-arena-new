@@ -174,20 +174,29 @@ function makeNewSpawn(%x,%y,%z,%b1,%b2)
 
 	for(%i=0;%i<clientGroup.getCount();%i++)
 	{
-		%obj = ClientGroup.getObject(%i);
+		%client = ClientGroup.getObject(%i);
 		
-		if($DefaultMinigame.isMember(%obj)) // Make sure they're in the minigame and not loading. (Just in case, we'll also make sure they're actually in the right minigame)
+		// To do: Fix round starting (The function can't use $CA::ClientCount to check)
+		//if(%client.awaitingSpawnPrompt)
+		//{
+		//	%client.player.delete();
+		//	echo("PLACEHOLDER: awaiting prompt");
+		//}
+		//else if($DefaultMinigame.isMember(%client)) // Make sure they're in the minigame and not loading. (Just in case, we'll also make sure they're actually in the right minigame)
+		if($DefaultMinigame.isMember(%client)) // Make sure they're in the minigame and not loading. (Just in case, we'll also make sure they're actually in the right minigame)
 		{
-			//%obj.player.delete();
-			%obj.spawnPlayer();
-			%obj.player.addVelocity("0 0 -1");
+			//%client.player.delete();
+			%client.spawnPlayer();
+			%client.player.addVelocity("0 0 -1");
 
-			%obj.player.tool[0] = "";
-			messageClient(%obj,'MsgItemPickup','',0,0);
+			%client.player.tool[0] = "";
+			messageClient(%client,'MsgItemPickup','',0,0);
 
-			%obj.player.spawnPoint = getRandom(getWord(%firstPos,0)+15,getWord(%lastPos,0)-15) SPC getRandom(getWord(%firstPos,1)+15,getWord(%lastPos,1)-15) SPC %z;
-			%obj.player.setTransform(%obj.player.spawnPoint);
+			%client.player.spawnPoint = getRandom(getWord(%firstPos,0)+15,getWord(%lastPos,0)-15) SPC getRandom(getWord(%firstPos,1)+15,getWord(%lastPos,1)-15) SPC %z;
+			%client.player.setTransform(%client.player.spawnPoint);
 		}
+		else
+			$CA::ClientCount--; // Not in the minigame for some reason, don't count them.
 	}
 	
 	cancel($CA::Loop::Modifier);
@@ -195,16 +204,7 @@ function makeNewSpawn(%x,%y,%z,%b1,%b2)
 	//schedule($CA::GameDelay,0,doRoundModifier,7);
 	
 	$CA::BrickCount = getBrickCount();
-	$CA::ClientCount = clientGroup.getCount();
-	
-	for(%i=0;%i<clientGroup.getCount();%i++) // We want to exclude people that are loading from the count.
-	{
-		%client = clientGroup.getObject(%i);
-		
-		if(!$DefaultMinigame.isMember(%client)) // If they aren't in the minigame, they're still loading.
-			$CA::ClientCount--;
-	}
-	
+
 	$CA::Start = getSimTime();
 	
 	if($CA::ClientCount == 1)
@@ -217,24 +217,6 @@ function doRoundModifier(%which)
 	centerPrintAll("<font:impact:60>\c3BEGIN!",5);
 	$CA::RoundModifierID = %which;
 	
-	if($CA::Trees)
-		%which = 5; // Use horses if the tree event is happening
-	//else if(getRandom(1,100) == 1 && $CA::ClientCount > 1) // Guns (very rare)
-	//{
-	//	for(%i=0;%i<clientGroup.getCount();%i++)
-	//	{
-	//		%obj = clientGroup.getObject(%i);
-    //
-	//		if(isObject(%obj.player))
-	//		{
-	//			%obj.player.tool[0] = GunItem.getID();
-	//			messageClient(%obj,'MsgItemPickup','',0,GunItem.getID());
-	//		}
-	//	}
-	//	centerPrintAll("<font:impact:64>\c3GUNS!",5);
-	//	return;
-	//}
-	
 	switch(%which)
 	{
 		case 1: //Pushbrooms
@@ -242,12 +224,12 @@ function doRoundModifier(%which)
 			{
 				for(%i=0;%i<clientGroup.getCount();%i++)
 				{
-					%obj = clientGroup.getObject(%i);
+					%client = clientGroup.getObject(%i);
 					
-					if(isObject(%obj.player))
+					if(isObject(%client.player))
 					{
-						%obj.player.tool[0] = PushBroomItem.getID();
-						messageClient(%obj,'MsgItemPickup','',0,PushBroomItem.getID());
+						%client.player.tool[0] = PushBroomItem.getID();
+						messageClient(%client,'MsgItemPickup','',0,PushBroomItem.getID());
 					}
 				}
 				centerPrintAll("<font:impact:60>\c3Pushbrooms!",5);
@@ -256,10 +238,10 @@ function doRoundModifier(%which)
 		case 2: //Huge
 			for(%i=0;%i<clientGroup.getCount();%i++)
 			{
-				%obj = clientGroup.getObject(%i);
+				%client = clientGroup.getObject(%i);
 				
-				if(isObject(%obj.player))
-					%obj.player.setPlayerScale("1.75 1.75 1.75");
+				if(isObject(%client.player))
+					%client.player.setPlayerScale("1.75 1.75 1.75");
 			}
 			centerPrintAll("<font:impact:60>\c3Giants!",5);
 
@@ -271,20 +253,20 @@ function doRoundModifier(%which)
 		case 4: //Small playerscale
 			for(%i=0;%i<clientGroup.getCount();%i++)
 			{
-				%obj = clientGroup.getObject(%i);
+				%client = clientGroup.getObject(%i);
 				
-				if(isObject(%obj.player))
-					%obj.player.setPlayerScale("0.6 0.6 0.6");
+				if(isObject(%client.player))
+					%client.player.setPlayerScale("0.6 0.6 0.6");
 			}
 			centerPrintAll("<font:impact:60>\c3Haha, alright then shortstuffs.",5);
 
 		case 5: //Horses
 			for(%i=0;%i<clientGroup.getCount();%i++)
 			{
-				%obj = clientGroup.getObject(%i);
+				%client = clientGroup.getObject(%i);
 				
-				if(isObject(%obj.player))
-					%obj.player.setDatablock(HorseArmor);
+				if(isObject(%client.player))
+					%client.player.setDatablock(HorseArmor);
 			}
 			centerPrintAll("<font:impact:60>\c3Horses, because horses.",5);
 
@@ -293,12 +275,12 @@ function doRoundModifier(%which)
 			{
 				for(%i=0;%i<clientGroup.getCount();%i++)
 				{
-					%obj = clientGroup.getObject(%i);
+					%client = clientGroup.getObject(%i);
 					
-					if(isObject(%obj.player))
+					if(isObject(%client.player))
 					{
-						%obj.player.tool[0] = SwordItem.getID();
-						messageClient(%obj,'MsgItemPickup','',0,SwordItem.getID());
+						%client.player.tool[0] = SwordItem.getID();
+						messageClient(%client,'MsgItemPickup','',0,SwordItem.getID());
 					}
 				}
 				centerPrintAll("<font:impact:60>\c3Swords!",5);
@@ -306,38 +288,38 @@ function doRoundModifier(%which)
 		case 7: //Slow
 			for(%i=0;%i<clientGroup.getCount();%i++)
 			{
-				%obj = clientGroup.getObject(%i);
+				%client = clientGroup.getObject(%i);
 				
-				if(isObject(%obj.player))
+				if(isObject(%client.player))
 				{
-					%d = %obj.player.dataBlock;
+					%d = %client.player.dataBlock;
 					
-					%obj.player.setMaxForwardSpeed(%d.maxForwardSpeed/2);
-					%obj.player.setMaxBackwardSpeed(%d.maxBackwardSpeed/2);
-					%obj.player.setMaxSideSpeed(%d.maxSideSpeed/2);
+					%client.player.setMaxForwardSpeed(%d.maxForwardSpeed/2);
+					%client.player.setMaxBackwardSpeed(%d.maxBackwardSpeed/2);
+					%client.player.setMaxSideSpeed(%d.maxSideSpeed/2);
 					
-					%obj.player.setMaxCrouchForwardSpeed(%d.maxForwardCrouchSpeed/2);
-					%obj.player.setMaxCrouchBackwardSpeed(%d.maxBackwardCrouchSpeed/2);
-					%obj.player.setMaxCrouchSideSpeed(%d.maxSideCrouchSpeed/2);
+					%client.player.setMaxCrouchForwardSpeed(%d.maxForwardCrouchSpeed/2);
+					%client.player.setMaxCrouchBackwardSpeed(%d.maxBackwardCrouchSpeed/2);
+					%client.player.setMaxCrouchSideSpeed(%d.maxSideCrouchSpeed/2);
 				}
 			}
 			centerPrintAll("<font:impact:60>\c3Slowpokes!",5);
 		case 8: //Fast
 			for(%i=0;%i<clientGroup.getCount();%i++)
 			{
-				%obj = clientGroup.getObject(%i);
+				%client = clientGroup.getObject(%i);
 				
-				if(isObject(%obj.player))
+				if(isObject(%client.player))
 				{
-					%d = %obj.player.dataBlock;
+					%d = %client.player.dataBlock;
 					
-					%obj.player.setMaxForwardSpeed(%d.maxForwardSpeed*1.8);
-					%obj.player.setMaxBackwardSpeed(%d.maxBackwardSpeed*1.8);
-					%obj.player.setMaxSideSpeed(%d.maxSideSpeed*1.8);
+					%client.player.setMaxForwardSpeed(%d.maxForwardSpeed*1.8);
+					%client.player.setMaxBackwardSpeed(%d.maxBackwardSpeed*1.8);
+					%client.player.setMaxSideSpeed(%d.maxSideSpeed*1.8);
 					
-					%obj.player.setMaxCrouchForwardSpeed(%d.maxForwardCrouchSpeed*1.8);
-					%obj.player.setMaxCrouchBackwardSpeed(%d.maxBackwardCrouchSpeed*1.8);
-					%obj.player.setMaxCrouchSideSpeed(%d.maxSideCrouchSpeed*1.8);
+					%client.player.setMaxCrouchForwardSpeed(%d.maxForwardCrouchSpeed*1.8);
+					%client.player.setMaxCrouchBackwardSpeed(%d.maxBackwardCrouchSpeed*1.8);
+					%client.player.setMaxCrouchSideSpeed(%d.maxSideCrouchSpeed*1.8);
 				}
 			}
 		centerPrintAll("<font:impact:60>\c3Gotta go fast!",5);
@@ -512,6 +494,8 @@ package CrumblingArenaPackage
 		BrickGroup_888888.deleteAll();
 		buildArena();
 
+		$CA::ClientCount = clientGroup.getCount();
+
 		$CA::FallingTiles = 0;
 		$CA::FTWarn = 0;
 		$CA::Start = getSimTime();
@@ -531,7 +515,7 @@ package CrumblingArenaPackage
 		parent::reset(%minigame,%b,%c,%d,%e,%f,%g);
 		
 		// This is special handling for if there are no clients.
-		if(clientGroup.getCount() == 0)
+		if($CA::ClientCount == 0)
 		{
 			// We're going to cancel the minigame's "reset" timer. This is so we don't keep rebuilding arenas every 5 minutes for an empty server. 
 			$CA::Paused = 1;
@@ -563,7 +547,7 @@ package CrumblingArenaPackage
 		// The game-mode uses regular last man standing but we're going to apply a few "hacks" to make it work better for the game-mode.
 		if($CA::ClientCount == 1 && clientGroup.getCount() > 1 && !$CA::SoloRoundStarted) // If only one player is active...
 		{
-			// If only one active player is alive, we'll start a solo round.
+			//If only one active player is alive, we'll start a solo round.
 			$CA::SoloRoundStarted = 1; // This is to make sure we don't prevent the next last man standing check (For example, if another player joins)
 			$CA::SoloRoundMsgSchedule = schedule(1000,0,messageAll,'',"\c5Solo round started because everyone is dead.");
 		}
@@ -713,45 +697,47 @@ package CrumblingArenaPackage
 		
 		for(%i=0;%i<clientGroup.getCount();%i++)
 		{
-			%obj = clientGroup.getObject(%i);
+			%client = clientGroup.getObject(%i);
 			
-			if(isObject(%obj.player) && getWord(%obj.player.getVelocity(),2) < -40)
+			if(isObject(%client.player) && getWord(%client.player.getVelocity(),2) < -40)
 			{
 				if(%gameStarted) // Make sure the round is actually in progress.
-					%obj.player.kill(); 
+					%client.player.kill(); 
 				else // If it isn't, return the player instead of killing them.
 				{
-					%obj.player.setVelocity("0 0 -1"); // Reset their velocity. If we don't do this, they get stuck in an infinite respawn loop.
-					%obj.player.setTransform(%obj.player.spawnPoint);
+					%client.player.setVelocity("0 0 -1"); // Reset their velocity. If we don't do this, they get stuck in an infinite respawn loop.
+					%client.player.setTransform(%client.player.spawnPoint);
 				}
 			}
-			else if(isObject(%obj.player) && %lagCheck) // If player is alive and it has been at least one second since last check
+			else if(isObject(%client.player) && %lagCheck) // If player is alive and it has been at least one second since last check
 			{
-				if(%obj.player.getTransform() $= %obj.player.lastTransform && %obj.player.getVelocity() !$= "0 0 0")
+				if(%client.player.getTransform() $= %client.player.lastTransform && %client.player.getVelocity() !$= "0 0 0")
 				{
-					talk("Client appears to be frozen: " @ %obj.name @ "; transform=" @ %obj.player.getTransform() @ "; last=" @ %obj.player.lastTransform);
+					talk("Client appears to be frozen: " @ %client.name @ "; transform=" @ %client.player.getTransform() @ "; last=" @ %client.player.lastTransform);
+					
+					%client.player.noIdle = 1;
 					$CA::ClientCount--;
-					%obj.player.kill();
+					%client.player.kill();
 				}
 				else
-					%obj.player.lastTransform = %obj.player.getTransform();
+					%client.player.lastTransform = %client.player.getTransform();
 			}
 			
-			if(%obj.debugHUD)
-				%hudPrefix = "bd:" SPC %obj.player.bricksDestroyed SPC "cc: " @ $CA::ClientCount @ " sk:" SPC %obj.player.swordKills @ "<BR>";
+			if(%client.debugHUD)
+				%hudPrefix = "bd:" SPC %client.player.bricksDestroyed SPC "cc: " @ $CA::ClientCount @ " sk:" SPC %client.player.swordKills @ "<BR>";
 			else
 				%hudPrefix = "";
 			
-			if(%obj.HUD && %obj.hasSpawnedOnce) // IMPORTANT: Never send bottom prints to clients that are loading. You will break the download system.
-				commandToClient(%obj,'bottomPrint',%hudPrefix @ "<font:impact:45>\c3" @ $CA::TimeDisplay @ "<just:right>\c3" @ $CA::BrickCount SPC "bricks left",0,1); // Exclude the music brick
+			if(%client.HUD && %client.hasSpawnedOnce) // IMPORTANT: Never send bottom prints to clients that are loading. You will break the download system.
+				commandToClient(%client,'bottomPrint',%hudPrefix @ "<font:impact:45>\c3" @ $CA::TimeDisplay @ "<just:right>\c3" @ $CA::BrickCount SPC "bricks left",0,1); // Exclude the music brick
 		}
 		
 		$CA::Loop::Velocity = schedule(10,0,checkVelocity);
 	}
 	
-	function PlayerNoJet::OnImpact(%this,%obj,%col,%vec,%force) // Borrowed this from the Blockheads Ruin X-Mas game-mode
+	function PlayerNoJet::OnImpact(%this,%player,%col,%vec,%force) // Borrowed this from the Blockheads Ruin X-Mas game-mode
 	{
-		parent::onImpact(%this, %obj, %col, %a, %b, %c);
+		parent::onImpact(%this, %player, %col, %a, %b, %c);
 		if(%force < 4)
 			return;
 		if(%col.getdatablock() != %this)
@@ -763,17 +749,17 @@ package CrumblingArenaPackage
 		
 		if(getSimTime() - $CA::Start > $CA::GameDelay)
 		{
-			awardAchievement(%obj.client,1); // Award "Mario" achievement
+			awardAchievement(%player.client,1); // Award "Mario" achievement
 			
-			if(%obj.achievementMario2 && %obj.achievementMarioPlayer !$= %col.getID()) // If they step on a different player's head without touching a brick, award the "Mario II" achievement.
-				awardAchievement(%obj.client,2);
+			if(%player.achievementMario2 && %player.achievementMarioPlayer !$= %col.getID()) // If they step on a different player's head without touching a brick, award the "Mario II" achievement.
+				awardAchievement(%player.client,2);
 				
-			%obj.achievementMario2 = 1;	
-			%obj.achievementMarioPlayer = %col.getID();
+			%player.achievementMario2 = 1;	
+			%player.achievementMarioPlayer = %col.getID();
 		}
 		
-		//centerprint(%col.client, "<bitmap:base/client/ui/ci/crater> \c0Stomp \c6from \c0" @ %obj.client.name @ " \c6at \c0" @ %force @ " \c6ft/sec. " @ %vec, 4);
-		//centerprint(%obj.client, "<bitmap:base/client/ui/ci/crater> \c0Stomp \c6to \c0" @ %col.client.name @ " \c6at \c0" @ %force @ " \c6ft/sec. " @ %vec, 4);
+		//centerprint(%col.client, "<bitmap:base/client/ui/ci/crater> \c0Stomp \c6from \c0" @ %player.client.name @ " \c6at \c0" @ %force @ " \c6ft/sec. " @ %vec, 4);
+		//centerprint(%player.client, "<bitmap:base/client/ui/ci/crater> \c0Stomp \c6to \c0" @ %col.client.name @ " \c6at \c0" @ %force @ " \c6ft/sec. " @ %vec, 4);
 	}
 	
 	function serverCmdUseTool(%client,%a)
@@ -788,8 +774,19 @@ package CrumblingArenaPackage
 		
 		%client = %player.client;
 		
-		if($CA::Time <= 9 && !%client.player.noIdle)
+		if($CA::Time <= 10 && !%client.player.noIdle)
+		{
 			$CA::ClientCount--; // If a player dies within the first ten seconds, exclude them from the "unstable" timer.
+			//%client.consecutiveDeaths++;
+			
+			//if(%client.consecutiveDeaths >= 2)
+			//{
+			//	%client.consecutiveDeaths = 0;
+			//	//"Click to respawn" code here
+			//	%client.awaitingSpawnPrompt = 1;
+			//	echo(%client.name SPC "(click to respawn)");
+			//}
+		}
 		else if(!$CA::SoloRoundStarted && !$CA::GameEnded) // Don't count the death if it's a solo round or the game is over.
 		{
 			$CA::ScoreDestroyed[%client.bl_id] = $CA::ScoreDestroyed[%client.bl_id]+%client.player.bricksDestroyed; // Add bricks destroyed to their stats
