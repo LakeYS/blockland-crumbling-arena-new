@@ -1,3 +1,44 @@
+function getBrick(%brick)
+{
+	//if(getRandom(1,150) == 1) // Rare tree brick
+	//{
+	//	$CA::Trees = 1;
+	//	if($CA::XmasStuff)
+	//		return "brickChristmasTreeData";
+	//	else
+	//		return "brickPineTreeData";
+	//}
+	//else
+	//	$CA::Trees = 0;
+
+	switch(%brick)
+	{
+		case 0:
+			return "brick4xCubeData";
+
+		case 1:
+			return "brick4x4Data";
+
+		case 2:
+			return "brick4x8Data";
+
+		case 3:
+			return "brick4x4FData";
+
+		case 4:
+			return "brick2x4Data";
+
+		case 5:
+			return "brick2x4x3Data";
+
+		case 6:
+			return "brick2x2Data";
+
+		case 7:
+			return "brick2xCubeData";
+	}
+}
+
 function getBrickSize(%brick)
 {
 	return %brick.brickSizeX/2 SPC %brick.brickSizeY/2 SPC %brick.brickSizeZ/5;
@@ -5,8 +46,6 @@ function getBrickSize(%brick)
 
 function buildArena()
 {
-	echo("SERVER: Building arena...");
-
 	%arenaSizeX = 15 + ClientGroup.getCount();
 	%arenaSizeY = 15 + ClientGroup.getCount();
 	
@@ -19,7 +58,7 @@ function buildArena()
 	%arenaHeight = getRandom(2,9);
 	$CA::Layers = %arenaHeight;
 	
-	$CA::BrickDatablock = getBrick(getRandom(0,9));
+	$CA::BrickDatablock = getBrick(getRandom(0,7));
 	%brickSize = getBrickSize($CA::BrickDatablock);
 	
 	// This adjusts the arena size for different brick sizes.
@@ -43,6 +82,8 @@ function buildArena()
 	}
 
 	echo("SIZE=" @ %arenaSizeX SPC "HEIGHT=" @ %arenaHeight SPC "SHAPE=" @ %arenaShape SPC "BRICK=" @ $CA::BrickDatablock);
+	
+	%timeStart = getRealTime();
 	
 	//talk(%arenaSizeX*getWord(%brickSize,1)*2);
 	
@@ -167,6 +208,12 @@ function buildArena()
 	}
 
 	$CA::GameDelay = 7000 + (clientGroup.getCount() * 450);
+	
+	%timeEnd = getRealTime();
+	
+	%timeElapsed = %timeEnd-%timeStart;
+	
+	echo("Arena built in" SPC %timeElapsed @ "ms");
 	
 	if(clientGroup.getCount() != 0) // Don't make the spawns if the server is empty -- we will wait until someone joins to do that.
 		$CA::Loop::MakeSpawn = schedule(33,0,makeNewSpawn,%positionX,%positionY,%positionZ + 20,%firstBrick,%lastBrick);

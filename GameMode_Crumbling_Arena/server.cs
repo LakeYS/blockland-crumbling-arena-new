@@ -120,53 +120,6 @@ function createMusicDB()
 	}
 }
 
-function getBrick(%brick)
-{
-	//if(getRandom(1,150) == 1) // Rare tree brick
-	//{
-	//	$CA::Trees = 1;
-	//	if($CA::XmasStuff)
-	//		return "brickChristmasTreeData";
-	//	else
-	//		return "brickPineTreeData";
-	//}
-	//else
-	//	$CA::Trees = 0;
-
-	switch(%brick)
-	{
-		case 0:
-			return "brick4xCubeData";
-
-		case 1:
-			return "brick4x4Data";
-
-		case 2:
-			return "brick4x8Data";
-
-		case 3:
-			return "brick4x4FData";
-
-		case 4:
-			return "brick2x4Data";
-
-		case 5:
-			return "brick4xCubeData"; // Extra chance for 4x cubes
-
-		case 6:
-			return "brick2x4x3Data"; // Extra chance for 2x4x3
-
-		case 7:
-			return "brick2x4x3Data";
-
-		case 8:
-			return "brick2x2Data";
-
-		case 9:
-			return "brick2xCubeData";
-	}
-}
-
 function makeNewSpawn(%x,%y,%z,%b1,%b2)
 {
 	%firstPos = %b1.getPosition();
@@ -200,8 +153,8 @@ function makeNewSpawn(%x,%y,%z,%b1,%b2)
 	}
 	
 	cancel($CA::Loop::Modifier);
-	$CA::Loop::Modifier = schedule($CA::GameDelay,0,doRoundModifier,getRandom(1,13)); //getRandom(1,13)
-	//schedule($CA::GameDelay,0,doRoundModifier,7);
+	$CA::Loop::Modifier = schedule($CA::GameDelay,0,doRoundModifier,getRandom(1,14)); //getRandom(1,14)
+	//schedule($CA::GameDelay,0,doRoundModifier,10);
 	
 	$CA::BrickCount = getBrickCount();
 
@@ -327,10 +280,9 @@ function doRoundModifier(%which)
 			CAGravityZone.gravityMod = 0.6;
 			CAGravityZone.sendUpdate();
 			centerPrintAll("<font:impact:60>\c3SPACE!",5);
-		//case 10: //Spleef
-		//	// We only need the print
-		//	centerPrintAll("<font:impact:60>\c3Spleef Round!<br><font:impact:30>\c3Click the bricks!",5);
-		
+		case 10: //Fast crumbling
+			$CA::CrumbleTime = 1; // Reduce the delay to 1ms
+			centerPrintAll("<font:impact:60>\c3Quicksand!",5);
 	}
 }
 
@@ -416,7 +368,7 @@ package CrumblingArenaPackage
 	// player: The player responsible for destroying the brick. If specified, this brick will be counted in their stats for the round.
 	// passthrough: set to 1 if brick is already being fake-killed (such as from an explosion)
 	function fxDTSBrick::destroyBrick(%this,%force,%sound,%player,%passthrough)
-	{	
+	{
 		if(%force)
 		{
 			%this.isBombBrick = 0;
@@ -449,7 +401,7 @@ package CrumblingArenaPackage
 				%this.playSound(%sound);
 			
 			if(!%passthrough)
-				%this.schedule(125,fakeKillBrick,"0 0 0",3);
+				%this.schedule($CA::CrumbleTime,fakeKillBrick,"0 0 0",3);
 			
 			%this.schedule(2500,disappear,-1);			
 			%this.schedule(3000,delete);
@@ -505,6 +457,7 @@ package CrumblingArenaPackage
 		$CA::Crumble = 0;
 		$CA::RoundStartMessage = 0;
 		$CA::SoloRoundStarted = 0;
+		$CA::CrumbleTime = 125;
 
 		CAGravityZone.gravityMod = 1;
 		CAGravityZone.sendUpdate();
