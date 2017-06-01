@@ -18,6 +18,7 @@ This version of the game-mode was modified from the one available here: https://
 * Added an achievement system
 * Added an RTB pref to toggle music
 * The game-mode now handles empty servers more efficiently.
+* Added "quicksand" modifier. (Bricks crumble faster)
 
 # Achievements
 Credit to KnockedOnWood (168791) and other various players for helping with achievement ideas.
@@ -29,8 +30,9 @@ Credit to KnockedOnWood (168791) and other various players for helping with achi
 * _(Not implemented)_ **Worm** - Tunnel under the arena and dig your way back to the surface! *(This won't be easy to implement.)*
 * _(Not implemented)_ **Totally Unfair!** - Tie with another player
 * _(Not implemented)_ **Determined** - Survive with only 10% of bricks remaining. (with at least two active players) *(Percentage subject to change)*
-* _(Not implemented)_ **WEEEEEEEEE!** - Survive an explosive brick
+* _(Not implemented)_ **Rocket Jumper** - Launch yourself into the air with an explosive brick and survive.
 * _(Not implemented)_ **Cautious** - Play an entire round without touching more than one brick at a time.
+* _(Not implemented)_ **KABOOM!** - Die from an explosion with another player.
 
 # Optional Stuff
 
