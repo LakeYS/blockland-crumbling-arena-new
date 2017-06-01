@@ -154,7 +154,7 @@ function makeNewSpawn(%x,%y,%z,%b1,%b2)
 
 	cancel($CA::Loop::Modifier);
 	$CA::Loop::Modifier = schedule($CA::GameDelay,0,doRoundModifier,getRandom(1,14)); //getRandom(1,14)
-	//schedule($CA::GameDelay,0,doRoundModifier,10);
+	//$CA::Loop::Modifier = schedule($CA::GameDelay,0,doRoundModifier,11);
 
 	$CA::BrickCount = getBrickCount();
 
@@ -283,6 +283,19 @@ function doRoundModifier(%which)
 		case 10: //Fast crumbling
 			$CA::CrumbleTime = 1; // Reduce the delay to 1ms
 			centerPrintAll("<font:impact:60>\c3Quicksand!",5);
+		case 11: //Minefield
+			$CA::CrumbleTime = 1; // Reduce the delay to 1ms
+			centerPrintAll("<font:impact:60>\c3It's a minefield!",5);
+			for(%i = 0; %i <= BrickGroup_888888.getCount()-1; %i++)
+			{
+				%brick = BrickGroup_888888.getObject(%i);
+				if(getRandom(1,32) == 1) //
+				{
+					%brick.setEmitter("AdminWandEmitterB");
+					%brick.setColorFX(5);
+					%brick.isBombBrick = 1;
+				}
+			}
 	}
 }
 
