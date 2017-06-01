@@ -48,30 +48,30 @@ function buildArena()
 {
 	%arenaSizeX = 15 + ClientGroup.getCount();
 	%arenaSizeY = 15 + ClientGroup.getCount();
-	
+
 	if(%arenaSizeX > 24)
 	{
 		%arenaSizeX = 24;
 		%arenaSizeY = 24;
 	}
-	
+
 	%arenaHeight = getRandom(2,9);
 	$CA::Layers = %arenaHeight;
-	
+
 	$CA::BrickDatablock = getBrick(getRandom(0,7));
 	%brickSize = getBrickSize($CA::BrickDatablock);
-	
+
 	// This adjusts the arena size for different brick sizes.
 	%arenaSizeX *= $CA::BrickDatablock.brickSizeY/$CA::BrickDatablock.brickSizeX;
 
 	// May help with the glitched bricks
 	%arenaOffsetX = getRandom(-700,700);
 	%arenaOffsetY = getRandom(-700,700);
-	
+
 	// Pick a random shape
-	//%arenaShape = getRandom(0,5); 
+	//%arenaShape = getRandom(0,5);
 	%arenaShape = 6; //TEMPORARY
-	
+
 	switch(%arenaShape)
 	{
 		case 2: // Arena shape 3: rectangle.
@@ -82,11 +82,11 @@ function buildArena()
 	}
 
 	echo("SIZE=" @ %arenaSizeX SPC "HEIGHT=" @ %arenaHeight SPC "SHAPE=" @ %arenaShape SPC "BRICK=" @ $CA::BrickDatablock);
-	
+
 	%timeStart = getRealTime();
-	
+
 	//talk(%arenaSizeX*getWord(%brickSize,1)*2);
-	
+
 	$CA::ArenaSizeDisplay = %arenaSizeX @ "x" @ %arenaSizeY @ "x" @ %arenaHeight @ %f;
 	$CA::ArenaBrick = $CA::BrickDatablock.uiName;
 	$CA::ArenaIcon = $CA::BrickDatablock.iconName;
@@ -102,7 +102,7 @@ function buildArena()
 			for(%y=0;%y<%arenaSizeY;%y++)
 			{
 				%skipBrick = 0;
-				
+
 				//To do:
 				// Rewrite spawning system for shaped arenas
 				// Consider removal/improvement of Z shape
@@ -110,17 +110,17 @@ function buildArena()
 				// Long arenas
 				// Circle arenas?
 				// Correct arena size for smaller bricks
-				
+
 				switch(%arenaShape)
 				{
 					case 0: // Arena shape 1; Z shape. This will require some changes to the spawn function so players can spawn on either side without dying.
-						if(%y >= mCeil(%arenaSizeY/2) && %x >= mCeil(%arenaSizeX/2) || %y <= mCeil((%arenaSizeY/2)-1) && %x <= mCeil((%arenaSizeX/2)-1)) 
+						if(%y >= mCeil(%arenaSizeY/2) && %x >= mCeil(%arenaSizeX/2) || %y <= mCeil((%arenaSizeY/2)-1) && %x <= mCeil((%arenaSizeX/2)-1))
 							%skipBrick = 1;
 					case 1: // Arena shape 2: plus shape A
-						if(%x >= %arenaSizeX-5 && %y >= %arenaSizeY-5 || %x <= 4 && %y <= 4 || %x >= %arenaSizeX-5 && %y <= 4 || %x <= 4 && %y >= %arenaSizeY-5) 
+						if(%x >= %arenaSizeX-5 && %y >= %arenaSizeY-5 || %x <= 4 && %y <= 4 || %x >= %arenaSizeX-5 && %y <= 4 || %x <= 4 && %y >= %arenaSizeY-5)
 							%skipBrick = 1;
 				}
-				
+
 				if(!%skipBrick)
 				{
 					%positionY = %arenaOffsetY + (getWord(%brickSize,1)*%y);
@@ -141,27 +141,27 @@ function buildArena()
 						stackBL_ID = "-1";
 						numEvents = 1;
 					};
-					
+
 					//if(%y >= mCeil(%arenaSizeX/2) && %x >= mCeil(%arenaSizeX/2) || %y <= mCeil((%arenaSizeX/2)-1) && %x <= mCeil((%arenaSizeX/2)-1))
 					//	%brick.setColor(%z+1);
-					
+
 					//// Uncomment to re-color edges of the arena
 					//if(%z == %arenaHeight-1)
 					//{
 					//	if(%y == %arenaSizeX-1 || %y == 0 || %x == %arenaSizeX-1 || %x == 0)
 					//		%brick.setColor(%arenaHeight-2);
 					//}
-					
+
 					// This is for testing purposes.
 					%brick.y = %y; %brick.x = %x; %brick.z = %z;
-					
+
 					if(getRandom(1,2000) == 1) //
 					{
 						%brick.setEmitter("AdminWandEmitterB");
 						%brick.setColorFX(5);
 						%brick.isBombBrick = 1;
 					}
-					
+
 					%brick.plant();
 					%brick.setTrusted(1);
 					BrickGroup_888888.add(%brick);
@@ -178,7 +178,7 @@ function buildArena()
 		%lastBrick = %brick;
 
 	%middle = (getWord(%firstBrick.getPosition(),0) + getWord(%lastBrick.getPosition(),0))/2 SPC (getWord(%firstBrick.getPosition(),1) + getWord(%lastBrick.getPosition(),1))/2 SPC %positionZ + 50;
-	
+
 	if($CA::Music)
 	{
 		%musicBrick = new fxDTSBrick(MusicBrick)
@@ -208,13 +208,13 @@ function buildArena()
 	}
 
 	$CA::GameDelay = 7000 + (clientGroup.getCount() * 450);
-	
+
 	%timeEnd = getRealTime();
-	
+
 	%timeElapsed = %timeEnd-%timeStart;
-	
+
 	echo("Arena built in" SPC %timeElapsed @ "ms");
-	
+
 	if(clientGroup.getCount() != 0) // Don't make the spawns if the server is empty -- we will wait until someone joins to do that.
 		$CA::Loop::MakeSpawn = schedule(33,0,makeNewSpawn,%positionX,%positionY,%positionZ + 20,%firstBrick,%lastBrick);
 	else
