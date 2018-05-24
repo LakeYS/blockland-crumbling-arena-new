@@ -515,7 +515,7 @@ package CrumblingArenaPackage
 		{
 			//If only one active player is alive, we'll start a solo round.
 			$CA::SoloRoundStarted = 1; // This is to make sure we don't prevent the next last man standing check (For example, if another player joins)
-			$CA::SoloRoundMsgSchedule = schedule(1000,0,messageAll,'',"\c5Solo round started because everyone is dead.");
+			$CA::SoloRoundMsgSchedule = schedule(1000,0,messageAll,'',"\c5Solo round started because everyone else is dead.");
 		}
 		else
 		{
