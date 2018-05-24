@@ -1,3 +1,6 @@
+# Notice
+This version of Crumbling Arena is based off a much older version of the game-mode. Development on this version of the game-mode is no-longer active. See here for the newest version by TheBlackParrot: https://github.com/TheBlackParrot/blockland-crumbling-arena
+
 # Crumbling Arena
 This game-mode adds numerous enhancements to TheBlackParrot's Crumbling Arena game-mode for Blockland.
 
